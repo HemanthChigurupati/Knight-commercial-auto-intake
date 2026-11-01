@@ -1,0 +1,11 @@
+{
+  "schema": "page_classification",
+  "role": "classify",
+  "model": "us.anthropic.claude-haiku-4-5-20251001-v1:0",
+  "data": {
+    "doc_type": "mvr",
+    "confidence": 0.99,
+    "subject": "WHITFIELD, MARCUS J",
+    "reason": "New Jersey five-year motor vehicle record from RoadLedger showing driver violations, accidents, license status, and CDL information for a single driver."
+  }
+}

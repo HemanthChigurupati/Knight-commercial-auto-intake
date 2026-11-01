@@ -1,0 +1,5 @@
+{
+  "engine": "ocr:textract",
+  "confidence": 0.998922004699707,
+  "text": "State of California\nONLINE SERVICES FILING RECORD:\nCALIFORNIA DEPARTMENT OF\nTAX AND FEE ADMINISTRATION\nTaxpayer Name:\nCOBALT MESA TRANSPORT INC\nAccount Number: 247-918305\nPeriod Begin:\nJanuary 01, 2026\nAccount Type:\nIFTA Carrier Tax\nPeriod End:\nMarch 31, 2026\nReturn Type:\nOriginal\nDue Date:\nApril 30, 2026\nRemaining Due: $3,945.42\nSummary\n1. Subtotal Amount Due or Credit\n$3,464.20\n2. Penalty\n$346.42\n3. Interest\n$134.80\n4. TOTAL BALANCE DUE OR CREDIT\n$3,945.42\nFictitious sample record for evaluation use only"
+}

@@ -1,0 +1,5 @@
+{
+  "engine": "ocr:textract",
+  "confidence": 0.9984703389152152,
+  "text": "Account Number:\n247-918305\nFiling Period:\nDecember 31, 2025\nVirginia\n2. Diesel\n900\n900\n5.94\n152\n24\n128\n0.3930\n$50.30\n$0.00\n$50.30\nWashington\n2. Diesel\n1,432\n1,432\n5.94\n241\n27\n214\n0.5840\n$124.98\n$0.00\n$124.98\nWest Virginia\n2. Diesel\n1,745\n1,745\n5.94\n294\n24\n270\n0.3570\n$96.39\n$0.00\n$96.39\nWyoming\n2. Diesel\n6,625\n6,625\n5.94\n1,115\n1,506\n-391\n0.2400\n-$93.84\n$0.00\n-$93.84\n130,981\n130,981\n22,049\n21,719\n330\n$2,790.11\n$0.00\n$2,790.11\nFictitious sample record for evaluation use only"
+}

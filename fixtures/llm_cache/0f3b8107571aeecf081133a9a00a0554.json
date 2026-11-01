@@ -1,0 +1,11 @@
+{
+  "schema": "page_classification",
+  "role": "classify",
+  "model": "us.anthropic.claude-haiku-4-5-20251001-v1:0",
+  "data": {
+    "doc_type": "mvr",
+    "confidence": 0.99,
+    "subject": "OSEI, NATHANIEL K",
+    "reason": "California driver record from RoadLedger MVR vendor showing license number O7314062, violations/convictions section marked \"NONE TO REPORT,\" and standard MVR report format with personal identifiers and license status."
+  }
+}
