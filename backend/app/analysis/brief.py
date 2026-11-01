@@ -1,7 +1,8 @@
 """Build the compact, ID-labelled brief the analysis model reads.
 
 The model sees the structured results of stages 1-5 -- never the raw PDFs -- and every
-item carries an id it must cite: documents (d01..), findings (F01..), rules (A1..F2).
+item carries an id it must cite: documents (d01..), findings (F01..), rules (A1..F2),
+and claim numbers as printed on the loss runs.
 """
 from __future__ import annotations
 
@@ -62,6 +63,8 @@ def build_brief(sub: Submission) -> tuple[str, set[str]]:
                          f"{f['total_claims'].value} claims, paid {f['total_paid'].value}, reserved "
                          f"{f['total_reserved'].value}, incurred {f['total_incurred'].value}")
             for c in e.records.get("claims", []):
+                if c["claim_number"].value:          # claim numbers are citable evidence too
+                    ids.add(str(c["claim_number"].value))
                 lines.append(f"  - claim {c['claim_number'].value}: loss {c['date_of_loss'].value}, reported "
                              f"{c['date_reported'].value} (late: {c['late_reported'].value}), driver "
                              f"{c['driver_name'].value}, vehicle {c['vehicle_description'].value} "

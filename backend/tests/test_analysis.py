@@ -27,7 +27,7 @@ def test_brief_carries_the_key_facts(sub):
     assert "Outcome: REFER" in brief and "do not change it" in brief
     for fact in ("GA1092764", "KEVIN BRANDT", "penalty 346.42", "COBALT MESA TRANSPORT LLC", "308-day lapse"):
         assert fact in brief
-    assert {"F01", "F17", "C1", "E5", "d02"} <= ids
+    assert {"F01", "F17", "C1", "E5", "d02", "GA1092764"} <= ids
 
 
 def test_citation_check_keeps_only_supported_items():
