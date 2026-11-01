@@ -14,6 +14,7 @@ record a "name says X, content says Y" observation for the reviewer.
 """
 from __future__ import annotations
 
+import logging
 import re
 from dataclasses import dataclass
 
@@ -21,7 +22,11 @@ from ..schemas import (Classification, ClassifiedUnit, ContentUnit, DocType, Log
                        SourceFile, UnitKind)
 from ..providers.llm import Block, LLMProvider, LLMUnavailable
 
+log = logging.getLogger("pipeline")
+
 REVIEW_THRESHOLD = 0.70
+# Self-reported model confidence is optimistic; never present a classification as certain.
+MAX_CONFIDENCE = 0.99
 
 # (pattern, weight). Patterns are matched case-insensitively against the unit text.
 SIGNALS: dict[DocType, list[tuple[str, float]]] = {
@@ -87,17 +92,23 @@ FILENAME_HINTS: list[tuple[str, DocType]] = [
     (r"guideline", DocType.UNDERWRITING_GUIDELINE)]
 
 DOC_TYPE_GUIDE = """\
-application            Carrier's commercial auto insurance application (applicant, FEIN, DOT/MC, coverages, operations Q&A, signature)
+application            Carrier's commercial auto insurance application (applicant, FEIN, DOT/MC, coverages, operations Q&A, signature). A worksheet inside the application workbook that lists drivers or vehicles is still part of the application.
 quote_form             Agency quick-quote form summarizing the risk (operations, radius, commodities, prior carriers)
-driver_schedule        List of drivers (names, DOB, license numbers, hire dates, experience)
-vehicle_schedule       List of vehicles/power units (year, make, model, VIN, value)
+driver_schedule        A standalone list of drivers (names, DOB, license numbers, hire dates, experience)
+vehicle_schedule       A standalone list of vehicles/power units (year, make, model, VIN, value)
 mvr                    Motor vehicle record for ONE driver from a state/MVR vendor (violations, accidents, license status)
 driver_license         A photo or scan of a physical driver's license card
-loss_run               Insurer-issued claims history for one policy term (claims, paid, reserved, incurred)
-no_loss_letter         A letter stating there were no losses, without a full claims report
+loss_run               A carrier-generated claims report for one policy term: policy number, policy period, run/valuation date and a totals table (paid, reserved, incurred). It is STILL a loss_run when it shows zero claims or says no claims were found.
+no_loss_letter         A letter (letterhead, date, "To whom it may concern" or similar salutation) asserting there were no losses, with NO claims/totals table
 ifta_return            Quarterly IFTA fuel-tax return or filing record (miles and gallons by jurisdiction)
 underwriting_guideline The carrier's own underwriting rules (not part of an applicant submission)
 other                  Anything else (cover email, lookup lists, blank pages)"""
+
+SUBJECT_GUIDE = (
+    "'subject' identifies WHICH record this is, using only the identifier -- never the "
+    "insured/company name: mvr and driver_license -> the driver's full name as printed; "
+    "loss_run and no_loss_letter -> the policy number; ifta_return -> the quarter as "
+    "'Q1 2026'; every other type -> empty string.")
 
 CLASSIFY_SYSTEM = (
     "You classify pages from commercial auto insurance submissions for an underwriting "
@@ -105,8 +116,7 @@ CLASSIFY_SYSTEM = (
     "often wrong. Pick exactly one type from this list:\n\n" + DOC_TYPE_GUIDE + "\n\n"
     "Confidence is your probability (0..1) that the type is correct. If the content is a "
     "continuation page (e.g. the 2nd page of an IFTA table), give the type of the "
-    "document it continues. 'subject' is a short identifier of whose/which record this is "
-    "(driver name, policy number, filing period), or empty.")
+    "document it continues. " + SUBJECT_GUIDE)
 
 CLASSIFY_SCHEMA = {
     "type": "object",
@@ -157,6 +167,10 @@ def _llm_classify(llm: LLMProvider, unit: ContentUnit) -> dict:
 
 
 def classify_unit(unit: ContentUnit, llm: LLMProvider | None) -> tuple[Classification, str]:
+    if unit.hidden:
+        # Hidden worksheets are form plumbing (dropdown lookups), not submitted content.
+        return Classification(doc_type=DocType.OTHER, confidence=MAX_CONFIDENCE,
+                              reason="Hidden worksheet; not classified or extracted."), ""
     sig = signal_classify(unit.text) if unit.text else SignalResult(None, 0.0, [])
     llm_out: dict | None = None
     if llm is not None:
@@ -192,17 +206,33 @@ def classify_unit(unit: ContentUnit, llm: LLMProvider | None) -> tuple[Classific
     if not subject and c.doc_type in SUBJECT_PATTERNS:
         m = re.search(SUBJECT_PATTERNS[c.doc_type], unit.text, re.I)
         subject = m.group(1).strip() if m else ""
+    if c.doc_type == DocType.IFTA_RETURN:
+        subject = _quarter_label(subject)
+    c.confidence = min(c.confidence, MAX_CONFIDENCE)
     c.needs_review = c.confidence < REVIEW_THRESHOLD
     return c, subject
+
+
+_QUARTER_END = {"march": 1, "june": 2, "september": 3, "december": 4}
+
+
+def _quarter_label(subject: str) -> str:
+    """'March 31, 2026' -> 'Q1 2026' so titles read the same whichever path produced them."""
+    m = re.match(r"([A-Za-z]+) \d{1,2}, (\d{4})", subject.strip())
+    if m and m.group(1).lower() in _QUARTER_END:
+        return f"Q{_QUARTER_END[m.group(1).lower()]} {m.group(2)}"
+    return subject
 
 
 def classify_units(units: list[ContentUnit], llm: LLMProvider | None
                    ) -> tuple[list[ClassifiedUnit], dict[str, str]]:
     out, subjects = [], {}
-    for u in units:
+    for n, u in enumerate(units, start=1):
         c, subject = classify_unit(u, llm)
         out.append(ClassifiedUnit(unit=u, classification=c))
         subjects[u.unit_id] = subject
+        log.info("  classify %d/%d  %-40s %-18s %.2f%s", n, len(units), u.label[:40],
+                 c.doc_type.value, c.confidence, "  REVIEW" if c.needs_review else "")
     return out, subjects
 
 
@@ -214,9 +244,14 @@ def _filename_hint(name: str) -> DocType | None:
     return None
 
 
+def _title(doc_type: DocType, subject: str) -> str:
+    return doc_type.value.replace("_", " ").title() + (f" - {subject}" if subject else "")
+
+
 def group_documents(classified: list[ClassifiedUnit], subjects: dict[str, str],
                     files: list[SourceFile]) -> list[LogicalDocument]:
     names = {f.file_id: f.name for f in files}
+    by_unit = {cu.unit.unit_id: cu for cu in classified}
     docs: list[LogicalDocument] = []
     current: LogicalDocument | None = None
     texts: dict[str, list[str]] = {}
@@ -224,12 +259,12 @@ def group_documents(classified: list[ClassifiedUnit], subjects: dict[str, str],
         u, c = cu.unit, cu.classification
         subject = subjects.get(u.unit_id, "")
         same_file = current is not None and current.file_ids[0] == u.file_id
-        # A weak page right after a document in the same PDF (e.g. the last rows of an IFTA
-        # table) is a continuation page; a secondary worksheet of a workbook belongs to the
-        # workbook's main document unless it is confidently something else.
+        # A workbook is one document: its worksheets are sections of it (e.g. the
+        # application's "Drivers and Vehicles" tab). A weak page right after a document in
+        # the same PDF (e.g. the last rows of an IFTA table) is a continuation page.
         continuation = same_file and (
-            (u.kind == UnitKind.PDF_PAGE and c.doc_type == DocType.OTHER)
-            or (u.kind == UnitKind.SHEET and c.doc_type != current.doc_type and c.confidence < 0.8))
+            u.kind == UnitKind.SHEET
+            or (u.kind == UnitKind.PDF_PAGE and c.doc_type == DocType.OTHER))
         starts_new = not continuation and (
             not same_file
             or current.doc_type != c.doc_type
@@ -237,10 +272,9 @@ def group_documents(classified: list[ClassifiedUnit], subjects: dict[str, str],
             or u.kind in (UnitKind.EMBEDDED_IMAGE, UnitKind.IMAGE_FILE)
         )
         if starts_new:
-            title = c.doc_type.value.replace("_", " ").title() + (f" - {subject}" if subject else "")
             current = LogicalDocument(
                 doc_id=f"d{len(docs) + 1:02d}", doc_type=c.doc_type, confidence=c.confidence,
-                unit_ids=[u.unit_id], file_ids=[u.file_id], title=title)
+                unit_ids=[u.unit_id], file_ids=[u.file_id], title=_title(c.doc_type, subject))
             docs.append(current)
             texts[current.doc_id] = [u.text]
         else:
@@ -249,21 +283,35 @@ def group_documents(classified: list[ClassifiedUnit], subjects: dict[str, str],
             # The document is as certain as its strongest page; continuation pages carry
             # little evidence of their own and should not drag it down.
             current.confidence = max(current.confidence, c.confidence)
-            if continuation and c.doc_type != current.doc_type:
+            if u.kind == UnitKind.PDF_PAGE and c.doc_type != current.doc_type:
                 current.observations.append(
                     f"{u.label} treated as a continuation of this document.")
         if u.hidden:
-            current.observations.append(f"Includes hidden worksheet '{u.meta.get('sheet')}'.")
+            current.excluded_unit_ids.append(u.unit_id)
+            current.observations.append(
+                f"Hidden worksheet '{u.meta.get('sheet')}' excluded from extraction.")
         if u.text_source.startswith("ocr:"):
             note = f"Text read by OCR ({u.text_source[4:]})."
             if note not in current.observations:
                 current.observations.append(note)
 
     for d in docs:
+        units = [by_unit[uid] for uid in d.unit_ids if uid not in d.excluded_unit_ids]
+        if units and units[0].unit.kind == UnitKind.SHEET:
+            # Type the workbook by its most confidently classified visible sheet.
+            best = max(units, key=lambda cu: cu.classification.confidence)
+            d.doc_type = best.classification.doc_type
+            d.confidence = best.classification.confidence
+            d.title = _title(d.doc_type, subjects.get(best.unit.unit_id, ""))
+            if len(units) > 1:
+                d.observations.append("Workbook sections: " + ", ".join(
+                    f"{cu.unit.meta.get('sheet')} ({cu.classification.doc_type.value})"
+                    for cu in units))
         # Re-score signals on the whole document: evidence split across pages adds up.
-        whole = signal_classify("\n".join(texts[d.doc_id]))
+        whole = signal_classify("\n".join(t for uid, t in zip(d.unit_ids, texts[d.doc_id])
+                                          if uid not in d.excluded_unit_ids))
         if whole.best == d.doc_type:
-            d.confidence = round(max(d.confidence, whole.score * 0.85), 3)
+            d.confidence = round(min(max(d.confidence, whole.score * 0.85), MAX_CONFIDENCE), 3)
         fname = names[d.file_ids[0]]
         hint = _filename_hint(fname)
         if hint and hint != d.doc_type:

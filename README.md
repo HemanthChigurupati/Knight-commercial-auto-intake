@@ -24,6 +24,12 @@ view to the underwriter.
 | `local` | Anthropic API | Tesseract / Claude vision | Local disk | `ANTHROPIC_API_KEY` |
 | `aws` | Amazon Bedrock (Claude, US inference profiles) | Textract / Claude vision | S3 (KMS) + SQS | AWS profile |
 
+## Recording a live run for demo mode
+
+Every live (`aws` / `local`) run saves each Claude response to `fixtures/llm_cache/` and each
+OCR result to `fixtures/ocr_cache/` (keyed by source-file hash + page). Commit those folders
+and `demo` mode replays that run exactly, with no credentials and no cost.
+
 ## Run stage 1
 
 ```bash

@@ -52,7 +52,9 @@ class Settings:
         "DATA_DIR", str(REPO_ROOT / "data"))))
     llm_cache_dir: Path = field(default_factory=lambda: Path(_env(
         "LLM_CACHE_DIR", str(REPO_ROOT / "fixtures" / "llm_cache"))))
-    # When true, every real LLM call is written to llm_cache_dir so demo mode can replay it.
+    ocr_cache_dir: Path = field(default_factory=lambda: Path(_env(
+        "OCR_CACHE_DIR", str(REPO_ROOT / "fixtures" / "ocr_cache"))))
+    # When true, every real LLM/OCR call is written to llm_cache_dir so demo mode can replay it.
     record_llm: bool = field(default_factory=lambda: _env("RECORD_LLM", "true").lower() == "true")
 
     # Pages with fewer extractable characters than this are treated as image-only.

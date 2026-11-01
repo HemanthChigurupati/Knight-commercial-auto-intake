@@ -76,6 +76,7 @@ class LogicalDocument(BaseModel):
     confidence: float
     unit_ids: list[str]
     file_ids: list[str]
+    excluded_unit_ids: list[str] = Field(default_factory=list)   # e.g. hidden worksheets
     title: str
     observations: list[str] = Field(default_factory=list)
 

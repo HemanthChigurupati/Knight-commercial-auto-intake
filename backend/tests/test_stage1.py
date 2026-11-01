@@ -19,7 +19,8 @@ SAMPLES = Path(__file__).resolve().parents[2] / "samples" / "cobalt-mesa"
 @pytest.fixture(scope="module")
 def submission(tmp_path_factory):
     s = replace(Settings(), mode="demo", data_dir=tmp_path_factory.mktemp("data"),
-                llm_cache_dir=tmp_path_factory.mktemp("empty_cache"))
+                llm_cache_dir=tmp_path_factory.mktemp("empty_llm_cache"),
+                ocr_cache_dir=tmp_path_factory.mktemp("empty_ocr_cache"))
     return process([SAMPLES / "Sample Submission - Cobalt Mesa Transport.zip"], s, "test")
 
 
@@ -43,6 +44,15 @@ def test_scanned_ifta_pages_are_ocrd_and_grouped(submission):
     ifta = [d for d in submission.documents if d.doc_type == DocType.IFTA_RETURN]
     assert all(any("OCR" in o for o in d.observations) for d in ifta)
     assert sorted(len(d.unit_ids) for d in ifta) == [2, 3, 3, 3]
+    assert sorted(d.title for d in ifta) == [f"Ifta Return - {q}" for q in
+                                             ("Q1 2026", "Q2 2026", "Q3 2025", "Q4 2025")]
+
+
+def test_workbook_is_one_document_without_hidden_sheet(submission):
+    app = next(d for d in submission.documents if d.doc_type == DocType.APPLICATION)
+    assert len(app.unit_ids) == 3                    # info tab, drivers tab, hidden lookups
+    assert len(app.excluded_unit_ids) == 1           # hidden lookups sheet
+    assert all(c.classification.confidence <= 0.99 for c in submission.classified)
 
 
 def test_misleading_file_name_is_flagged(submission):
@@ -51,7 +61,29 @@ def test_misleading_file_name_is_flagged(submission):
 
 
 def test_duplicate_files_are_detected(tmp_path):
-    s = replace(Settings(), mode="demo", data_dir=tmp_path, llm_cache_dir=tmp_path / "c")
+    s = replace(Settings(), mode="demo", data_dir=tmp_path, llm_cache_dir=tmp_path / "c",
+                ocr_cache_dir=tmp_path / "o")
     sub = process([SAMPLES / "candidate_pack.zip"], s, "dupes")
     assert sum(1 for f in sub.files if f.duplicate_of) == 15
     assert any(d.doc_type == DocType.UNDERWRITING_GUIDELINE for d in sub.documents)
+
+
+def test_ocr_results_replay_identically(tmp_path):
+    """A live run records OCR text; demo mode must serve that text back, not re-OCR."""
+    from app.providers.ocr import CachingOCR, OCRResult
+
+    class FakeOCR:
+        name = "fake"
+        calls = 0
+
+        def read(self, image_path, hint=""):
+            FakeOCR.calls += 1
+            return OCRResult(text="ONLINE SERVICES FILING RECORD", confidence=0.97,
+                             engine="ocr:textract")
+
+    live = CachingOCR(FakeOCR(), tmp_path, replay=False, record=True)
+    live.read("page.png", "scan", cache_key="abc_p1")
+    demo = CachingOCR(FakeOCR(), tmp_path, replay=True, record=True)
+    res = demo.read("page.png", "scan", cache_key="abc_p1")
+    assert (res.engine, res.text, FakeOCR.calls) == ("ocr:textract",
+                                                     "ONLINE SERVICES FILING RECORD", 1)

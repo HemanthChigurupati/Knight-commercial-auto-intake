@@ -11,11 +11,14 @@ Classification happens per unit, so a single file that mixes document types (e.g
 """
 from __future__ import annotations
 
+import logging
 from pathlib import Path
 
 from ..config import Settings
 from ..schemas import ContentUnit, SourceFile, UnitKind
 from .intake import stored_path
+
+log = logging.getLogger("pipeline")
 
 LETTER_RATIOS = (11 / 8.5, 8.5 / 11, 14 / 8.5, 8.5 / 14)   # letter + legal, both orientations
 MIN_IMAGE_SHARE = 0.15     # embedded images smaller than this share of the page are ignored
@@ -130,9 +133,13 @@ def build_units(files: list[SourceFile], work_dir: Path, s: Settings) -> list[Co
     return units
 
 
-def run_ocr(units: list[ContentUnit], ocr) -> None:
+def run_ocr(units: list[ContentUnit], ocr, files: list[SourceFile]) -> None:
     """Fill text for every unit that has an image but no text layer."""
-    for u in units:
-        if u.image_path and not u.text:
-            res = ocr.read(u.image_path, hint=u.meta.get("ocr_hint", ""))
-            u.text, u.text_source, u.ocr_confidence = res.text.strip(), res.engine, res.confidence
+    sha = {f.file_id: f.sha256 for f in files}
+    todo = [u for u in units if u.image_path and not u.text]
+    for n, u in enumerate(todo, start=1):
+        locator = u.unit_id.split(":", 1)[1].replace(":", "_")
+        key = f"{sha[u.file_id][:24]}_{locator}"
+        res = ocr.read(u.image_path, hint=u.meta.get("ocr_hint", ""), cache_key=key)
+        u.text, u.text_source, u.ocr_confidence = res.text.strip(), res.engine, res.confidence
+        log.info("  ocr %d/%d  %-40s %s", n, len(todo), u.label[:40], res.engine)

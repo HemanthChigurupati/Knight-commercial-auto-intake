@@ -6,6 +6,7 @@
 """
 from __future__ import annotations
 
+import json
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Protocol
@@ -115,5 +116,31 @@ class RoutedOCR:
         return self.tesseract.read(image_path)
 
 
+class CachingOCR:
+    """Saves OCR results from live runs and serves them back in demo mode.
+
+    Keyed by the SOURCE file's hash plus the page/unit locator -- not by rendered image
+    bytes, which can differ slightly between machines -- so a run recorded on one laptop
+    replays identically anywhere.
+    """
+
+    def __init__(self, inner: OCRProvider, cache_dir: Path, replay: bool, record: bool):
+        self.inner, self.cache_dir, self.replay, self.record = inner, cache_dir, replay, record
+        self.name = f"{inner.name}+{'replay' if replay else 'record' if record else 'live'}"
+
+    def read(self, image_path, hint="", cache_key: str | None = None):
+        path = self.cache_dir / f"{cache_key}.json" if cache_key else None
+        if self.replay and path is not None and path.exists():
+            rec = json.loads(path.read_text())
+            return OCRResult(text=rec["text"], confidence=rec["confidence"], engine=rec["engine"])
+        res = self.inner.read(image_path, hint)
+        if self.record and not self.replay and path is not None:
+            self.cache_dir.mkdir(parents=True, exist_ok=True)
+            path.write_text(json.dumps({"engine": res.engine, "confidence": res.confidence,
+                                        "text": res.text}, indent=2))
+        return res
+
+
 def build_ocr(settings: Settings, llm: LLMProvider) -> OCRProvider:
-    return RoutedOCR(settings, llm)
+    return CachingOCR(RoutedOCR(settings, llm), settings.ocr_cache_dir,
+                      replay=settings.mode == "demo", record=settings.record_llm)

@@ -6,6 +6,7 @@ Later stages (extract, reconcile, agentic recheck, rules, analysis) plug in afte
 from __future__ import annotations
 
 import json
+import logging
 import sys
 import time
 import uuid
@@ -19,6 +20,8 @@ from ..schemas import Submission
 from .classify import classify_units, group_documents
 from .intake import ingest
 from .preprocess import build_units, run_ocr
+
+log = logging.getLogger("pipeline")
 
 
 def _event(sub: Submission, step: str, t0: float, **detail) -> None:
@@ -34,21 +37,26 @@ def process(inputs: list[Path], settings: Settings | None = None,
     work = s.data_dir / "submissions" / sub.submission_id
     llm = build_llm(s)
     ocr = build_ocr(s, llm)
+    log.info("mode=%s  llm=%s  ocr=%s", s.mode, llm.name, ocr.name)
 
+    log.info("[1/4] intake")
     t0 = time.time()
     sub.files = ingest(inputs, work)
     _event(sub, "intake", t0, files=len(sub.files),
            duplicates=sum(1 for f in sub.files if f.duplicate_of))
 
+    log.info("[2/4] preprocess: splitting files into pages/sheets/images")
     t0 = time.time()
     sub.units = build_units(sub.files, work, s)
     _event(sub, "preprocess", t0, units=len(sub.units),
            needs_ocr=sum(1 for u in sub.units if u.image_path and not u.text))
 
+    log.info("[3/4] ocr")
     t0 = time.time()
-    run_ocr(sub.units, ocr)
+    run_ocr(sub.units, ocr, sub.files)
     _event(sub, "ocr", t0, engines=sorted({u.text_source for u in sub.units}))
 
+    log.info("[4/4] classify + group")
     t0 = time.time()
     sub.classified, subjects = classify_units(sub.units, llm)
     sub.documents = group_documents(sub.classified, subjects, sub.files)
@@ -73,4 +81,7 @@ def _print_summary(sub: Submission) -> None:
 
 
 if __name__ == "__main__":
+    logging.basicConfig(level=logging.INFO, format="%(message)s", stream=sys.stderr)
+    for noisy in ("botocore", "boto3", "urllib3", "httpx", "anthropic", "pdfminer"):
+        logging.getLogger(noisy).setLevel(logging.WARNING)
     _print_summary(process([Path(a) for a in sys.argv[1:]]))
