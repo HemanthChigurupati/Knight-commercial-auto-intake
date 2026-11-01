@@ -1,0 +1,11 @@
+{
+  "schema": "page_classification",
+  "role": "classify",
+  "model": "us.anthropic.claude-haiku-4-5-20251001-v1:0",
+  "data": {
+    "doc_type": "ifta_return",
+    "confidence": 0.95,
+    "subject": "Q3 2025",
+    "reason": "This is a continuation page of an IFTA quarterly fuel-tax return showing miles and gallons by jurisdiction (Texas, Utah, Virginia, Washington, West Virginia, Wyoming) with tax calculations for the filing period ending September 30, 2025."
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "schema": "page_classification",
+  "role": "classify",
+  "model": "us.anthropic.claude-haiku-4-5-20251001-v1:0",
+  "data": {
+    "doc_type": "ifta_return",
+    "confidence": 0.95,
+    "subject": "Q4 2025",
+    "reason": "California Department of Tax and Fee Administration IFTA Carrier Tax filing record for the period October 1 \u2013 December 31, 2025 (Q4) with account number, return type, and balance due."
+  }
+}

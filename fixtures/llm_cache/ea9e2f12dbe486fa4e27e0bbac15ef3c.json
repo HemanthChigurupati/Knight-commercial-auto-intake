@@ -1,0 +1,11 @@
+{
+  "schema": "page_classification",
+  "role": "classify",
+  "model": "us.anthropic.claude-haiku-4-5-20251001-v1:0",
+  "data": {
+    "doc_type": "mvr",
+    "confidence": 0.95,
+    "subject": "VOLKOV, ALEKSANDR P",
+    "reason": "Page header identifies this as an \"MVR Report\" with control number and driver name, and footer confirms it is a motor vehicle record for a single driver."
+  }
+}

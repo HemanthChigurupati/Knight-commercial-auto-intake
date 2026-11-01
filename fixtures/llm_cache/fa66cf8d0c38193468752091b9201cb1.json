@@ -1,0 +1,80 @@
+{
+  "schema": "extract_loss_run",
+  "role": "extract",
+  "model": "us.anthropic.claude-sonnet-4-6",
+  "data": {
+    "carrier": {
+      "value": "GRANITE PEAK SPECIALTY INSURANCE COMPANY",
+      "quote": "Insurance Co:GRANITE PEAK SPECIALTY INSURANCE COMPANY",
+      "unit": "f007:p1",
+      "confidence": 0.99
+    },
+    "insured_name": {
+      "value": "COBALT MESA TRANSPORT INC",
+      "quote": "Name Of Insured:COBALT MESA TRANSPORT INC",
+      "unit": "f007:p1",
+      "confidence": 0.99
+    },
+    "policy_number": {
+      "value": "GMC2990344",
+      "quote": "Policy Number:GMC2990344",
+      "unit": "f007:p1",
+      "confidence": 0.99
+    },
+    "coverage": {
+      "value": "CARGO",
+      "quote": "COVERAGE  AUTO LIABLITY  PHYSICAL DAMAGE  CARGO",
+      "unit": "f007:p1",
+      "confidence": 0.85
+    },
+    "period_start": {
+      "value": "12/16/2024",
+      "quote": "Policy Period:12/16/2024 to 12/16/2025",
+      "unit": "f007:p1",
+      "confidence": 0.99
+    },
+    "period_end": {
+      "value": "12/16/2025",
+      "quote": "Policy Period:12/16/2024 to 12/16/2025",
+      "unit": "f007:p1",
+      "confidence": 0.99
+    },
+    "run_date": {
+      "value": "10/06/2026",
+      "quote": "Run Date: 10/06/2026",
+      "unit": "f007:p1",
+      "confidence": 0.99
+    },
+    "total_claims": {
+      "value": "0",
+      "quote": "Our records indicates that as of run date there have not been any claims against the above insured",
+      "unit": "f007:p1",
+      "confidence": 0.99
+    },
+    "open_claims": {
+      "value": "0",
+      "quote": "OPEN CLAIMS:",
+      "unit": "f007:p1",
+      "confidence": 0.95
+    },
+    "total_paid": {
+      "value": "$0.00",
+      "quote": "TOTAL LOSSES PAID  No Coverage  No Coverage  $0.00",
+      "unit": "f007:p1",
+      "confidence": 0.99
+    },
+    "total_reserved": {
+      "value": "$0.00",
+      "quote": "TOTAL RESERVED  No Coverage  No Coverage  $0.00",
+      "unit": "f007:p1",
+      "confidence": 0.99
+    },
+    "total_incurred": {
+      "value": "$0.00",
+      "quote": "TOTAL INCURRED  No Coverage  No Coverage  $0.00",
+      "unit": "f007:p1",
+      "confidence": 0.99
+    },
+    "claims": []
+  }
+}

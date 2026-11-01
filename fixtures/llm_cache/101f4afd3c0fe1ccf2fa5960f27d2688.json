@@ -1,0 +1,11 @@
+{
+  "schema": "page_classification",
+  "role": "classify",
+  "model": "us.anthropic.claude-haiku-4-5-20251001-v1:0",
+  "data": {
+    "doc_type": "application",
+    "confidence": 0.75,
+    "subject": "",
+    "reason": "This is a worksheet containing both driver information (names, DOB, hire dates, CDL details, experience, violations) and vehicle/fleet information (year, make, model, VIN, vehicle type, weight, plate, value), which are typical schedules found within a commercial auto insurance application workbook."
+  }
+}

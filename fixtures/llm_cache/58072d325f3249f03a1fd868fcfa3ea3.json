@@ -1,0 +1,61 @@
+{
+  "schema": "extract_driver_license",
+  "role": "extract",
+  "model": "us.anthropic.claude-sonnet-4-6",
+  "data": {
+    "holder_name": {
+      "value": "NATHANIEL KWAME OSEI",
+      "quote": "LN OSEI\nFN NATHANIEL KWAME",
+      "unit": "f009:p10",
+      "confidence": 0.99
+    },
+    "license_number": {
+      "value": "07314062",
+      "quote": "DL 07314062",
+      "unit": "f009:p10",
+      "confidence": 0.99
+    },
+    "license_state": {
+      "value": "California",
+      "quote": "California",
+      "unit": "f009:p10",
+      "confidence": 0.99
+    },
+    "dob": {
+      "value": "02/17/1987",
+      "quote": "DOB 02/17/1987",
+      "unit": "f009:p10",
+      "confidence": 0.99
+    },
+    "license_class": {
+      "value": "A",
+      "quote": "CLASS A",
+      "unit": "f009:p10",
+      "confidence": 0.99
+    },
+    "commercial": {
+      "value": "yes",
+      "quote": "COMMERCIAL\nDRIVER LICENSE",
+      "unit": "f009:p10",
+      "confidence": 0.99
+    },
+    "issue_date": {
+      "value": "01/06/2021",
+      "quote": "ISS 01/06/2021",
+      "unit": "f009:p10",
+      "confidence": 0.99
+    },
+    "expiry_date": {
+      "value": "02/17/2025",
+      "quote": "EXP 02/17/2025",
+      "unit": "f009:p10",
+      "confidence": 0.99
+    },
+    "address": {
+      "value": "2618 WILLOW CREST CT APT 105, FRESNO, CA 93722",
+      "quote": "2618 WILLOW CREST CT APT 105\nFRESNO, CA 93722",
+      "unit": "f009:p10",
+      "confidence": 0.99
+    }
+  }
+}

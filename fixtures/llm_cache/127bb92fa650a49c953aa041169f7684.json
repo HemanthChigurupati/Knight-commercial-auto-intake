@@ -1,0 +1,61 @@
+{
+  "schema": "extract_driver_license",
+  "role": "extract",
+  "model": "us.anthropic.claude-sonnet-4-6",
+  "data": {
+    "holder_name": {
+      "value": "ALEKSANDR PAVEL VOLKOV",
+      "quote": "VOLKOV\nALEKSANDR PAVEL",
+      "unit": "f009:p7",
+      "confidence": 0.99
+    },
+    "license_number": {
+      "value": "V6193 02874 15503",
+      "quote": "DL V6193 02874 15503",
+      "unit": "f009:p7",
+      "confidence": 0.97
+    },
+    "license_state": {
+      "value": "NEW JERSEY",
+      "quote": "NEW JERSEY",
+      "unit": "f009:p7",
+      "confidence": 0.99
+    },
+    "dob": {
+      "value": "06-02-1983",
+      "quote": "DOB 06-02-1983",
+      "unit": "f009:p7",
+      "confidence": 0.99
+    },
+    "license_class": {
+      "value": "A",
+      "quote": "CLASS A",
+      "unit": "f009:p7",
+      "confidence": 0.99
+    },
+    "commercial": {
+      "value": "yes",
+      "quote": "COMMERCIAL DRIVER LICENSE",
+      "unit": "f009:p7",
+      "confidence": 0.99
+    },
+    "issue_date": {
+      "value": "05-28-2022",
+      "quote": "ISS 05-28-2022",
+      "unit": "f009:p7",
+      "confidence": 0.99
+    },
+    "expiry_date": {
+      "value": "06-02-2026",
+      "quote": "EXP 06-02-2026",
+      "unit": "f009:p7",
+      "confidence": 0.99
+    },
+    "address": {
+      "value": "17 BIRCHWOOD TER APT 2C, EDISON, NJ 08817",
+      "quote": "17 BIRCHWOOD TER APT 2C\nEDISON, NJ 08817",
+      "unit": "f009:p7",
+      "confidence": 0.99
+    }
+  }
+}
