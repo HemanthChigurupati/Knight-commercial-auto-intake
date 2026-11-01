@@ -5,7 +5,7 @@ document by content, extract and reconcile the data, re-check conflicts with an 
 apply Knight's underwriting guideline as deterministic rules, and present one consolidated
 view to the underwriter.
 
-> Work in progress. Stage 1 (intake -> classification) and stage 2 (extraction) are built and tested.
+> Work in progress. Stages 1-3 (intake/classification, extraction, reconciliation) are built and tested.
 
 ## Pipeline
 
@@ -17,7 +17,13 @@ view to the underwriter.
 6. **Extract**: facts per document type from `extraction/specs.py` (the rule -> fact map); each fact
    carries value, verbatim quote, page and confidence, and is checked in code (`pipeline/verify.py`):
    quote grounding, normalization, VIN length/characters/check digit
-7. Reconcile -> 8. Agentic recheck -> 9. Rules -> 10. AI analysis -> 11. Review *(in progress)*
+7. **Reconcile** (`reconcile/`): facts regrouped into entities (applicant, drivers by license
+   number, vehicles by VIN, policy terms, IFTA quarters); findings classified as conflict, gap,
+   possible misread, outdated document or superseded, with severity and sources. Plain code, no AI.
+8. Agentic recheck -> 9. Rules -> 10. AI analysis -> 11. Review *(in progress)*
+
+`tests/test_reconcile.py` holds the **expected-findings test**: it replays the recorded Bedrock
+run in `fixtures/` and checks that every issue an underwriter would find by hand is reported.
 
 ## Modes
 

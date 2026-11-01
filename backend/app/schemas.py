@@ -89,6 +89,7 @@ class Submission(BaseModel):
     classified: list[ClassifiedUnit] = Field(default_factory=list)
     documents: list[LogicalDocument] = Field(default_factory=list)
     extractions: list["Extraction"] = Field(default_factory=list)
+    reconciliation: "Reconciliation | None" = None
     events: list[dict] = Field(default_factory=list)   # audit trail of pipeline steps
 
 
@@ -128,4 +129,58 @@ class Extraction(BaseModel):
     error: str = ""
 
 
+
+# ---------------------------------------------------------------- stage 3: reconciliation
+
+class Observation(BaseModel):
+    """One value for one field of an entity, and exactly where it came from."""
+    value: str | int | float | bool | None
+    doc_id: str | None = None          # None for derived values (counts, VIN decode)
+    source: str                        # human label: "Driver Schedule row 4", "VIN decode"
+    unit_id: str | None = None
+    quote: str = ""
+    confidence: float = 0.0
+
+
+class Entity(BaseModel):
+    entity_id: str                     # "driver:M5520814", "vehicle:4V4NC9EH9LN248615"
+    kind: str                          # applicant | driver | vehicle | policy_term | ifta_quarter
+    label: str
+    fields: dict[str, list[Observation]] = Field(default_factory=dict)
+    doc_ids: list[str] = Field(default_factory=list)
+
+    def add(self, name: str, obs: "Observation | None") -> None:
+        if obs is None or obs.value in (None, ""):
+            return
+        self.fields.setdefault(name, []).append(obs)
+        if obs.doc_id and obs.doc_id not in self.doc_ids:
+            self.doc_ids.append(obs.doc_id)
+
+
+class FindingKind(str, Enum):
+    CONFLICT = "conflict"                  # sources disagree on a value
+    POSSIBLE_MISREAD = "possible_misread"  # differ only by characters OCR confuses
+    OUTDATED_DOCUMENT = "outdated_document"  # an older document disagrees with a newer one
+    SUPERSEDED = "superseded"              # a newer copy of the same record exists
+    GAP = "gap"                            # one document mentions what another should cover
+
+
+class Finding(BaseModel):
+    finding_id: str
+    kind: FindingKind
+    severity: str                          # high | medium | low
+    entity_id: str
+    field: str = ""
+    title: str
+    detail: str = ""
+    observations: list[Observation] = Field(default_factory=list)
+    needs_recheck: bool = False            # stage 4's agent should re-read the sources
+
+
+class Reconciliation(BaseModel):
+    entities: list[Entity] = Field(default_factory=list)
+    findings: list[Finding] = Field(default_factory=list)
+
+
+Entity.model_rebuild()
 Submission.model_rebuild()

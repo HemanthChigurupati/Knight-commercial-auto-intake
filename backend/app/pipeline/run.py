@@ -19,6 +19,7 @@ from ..providers.ocr import build_ocr
 from ..schemas import Submission
 from .classify import classify_units, group_documents
 from .extract import all_facts, extract_documents, fact_counts
+from ..reconcile.checks import reconcile
 from .intake import ingest
 from .preprocess import build_units, run_ocr
 
@@ -40,31 +41,31 @@ def process(inputs: list[Path], settings: Settings | None = None,
     ocr = build_ocr(s, llm)
     log.info("mode=%s  llm=%s  ocr=%s", s.mode, llm.name, ocr.name)
 
-    log.info("[1/5] intake")
+    log.info("[1/6] intake")
     t0 = time.time()
     sub.files = ingest(inputs, work)
     _event(sub, "intake", t0, files=len(sub.files),
            duplicates=sum(1 for f in sub.files if f.duplicate_of))
 
-    log.info("[2/5] preprocess: splitting files into pages/sheets/images")
+    log.info("[2/6] preprocess: splitting files into pages/sheets/images")
     t0 = time.time()
     sub.units = build_units(sub.files, work, s)
     _event(sub, "preprocess", t0, units=len(sub.units),
            needs_ocr=sum(1 for u in sub.units if u.image_path and not u.text))
 
-    log.info("[3/5] ocr")
+    log.info("[3/6] ocr")
     t0 = time.time()
     run_ocr(sub.units, ocr, sub.files)
     _event(sub, "ocr", t0, engines=sorted({u.text_source for u in sub.units}))
 
-    log.info("[4/5] classify + group")
+    log.info("[4/6] classify + group")
     t0 = time.time()
     sub.classified, subjects = classify_units(sub.units, llm)
     sub.documents = group_documents(sub.classified, subjects, sub.files)
     _event(sub, "classify", t0, llm=llm.name, documents=len(sub.documents),
            needs_review=sum(1 for c in sub.classified if c.classification.needs_review))
 
-    log.info("[5/5] extract facts")
+    log.info("[5/6] extract facts")
     t0 = time.time()
     sub.extractions = extract_documents(sub, llm)
     totals = {"found": 0, "missing": 0, "invalid": 0, "unverified": 0}
@@ -74,6 +75,15 @@ def process(inputs: list[Path], settings: Settings | None = None,
     _event(sub, "extract", t0, llm=llm.name,
            documents={st: sum(1 for e in sub.extractions if e.status == st)
                       for st in ("ok", "not_run", "skipped", "error")}, facts=totals)
+
+    log.info("[6/6] reconcile across documents")
+    t0 = time.time()
+    sub.reconciliation = reconcile(sub)
+    rec = sub.reconciliation
+    _event(sub, "reconcile", t0, entities=len(rec.entities),
+           findings={k: sum(1 for f in rec.findings if f.kind.value == k)
+                     for k in ("conflict", "gap", "possible_misread", "outdated_document", "superseded")},
+           needs_recheck=sum(1 for f in rec.findings if f.needs_recheck))
 
     (work / "submission.json").write_text(sub.model_dump_json(indent=2))
     return sub
@@ -102,6 +112,17 @@ def _print_summary(sub: Submission) -> None:
         missing = [f.name for f in ex.facts.values() if f.status.value == "missing"]
         if missing:
             print(f"      - not stated: {', '.join(missing)}")
+    if sub.reconciliation:
+        rec = sub.reconciliation
+        kinds = {}
+        for e in rec.entities:
+            kinds[e.kind] = kinds.get(e.kind, 0) + 1
+        print(f"\nReconciliation: {', '.join(f'{v} {k}' for k, v in kinds.items())}")
+        for f in rec.findings:
+            mark = "  [recheck]" if f.needs_recheck else ""
+            print(f"{f.finding_id} {f.severity:<6} {f.kind.value:<17} {f.title}{mark}")
+            if f.detail:
+                print(f"      {f.detail}")
     print("\nEvents:", json.dumps(sub.events, indent=1))
 
 
