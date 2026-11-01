@@ -1,5 +1,5 @@
 """Pipeline orchestrator: intake -> preprocess -> OCR -> classify/group -> extract ->
-reconcile -> agent recheck. Rules and AI analysis plug in after the recheck.
+reconcile -> agent recheck -> rules -> AI analysis.
 
     python -m app.pipeline.run ../samples/cobalt-mesa/"Sample Submission - Cobalt Mesa Transport.zip"
 """
@@ -22,6 +22,7 @@ from .extract import all_facts, extract_documents, fact_counts
 from ..agent.recheck import recheck_findings
 from ..reconcile.checks import reconcile
 from ..rules.engine import evaluate
+from ..analysis.analyze import analyze
 from .intake import ingest
 from .preprocess import build_units, run_ocr
 
@@ -43,31 +44,31 @@ def process(inputs: list[Path], settings: Settings | None = None,
     ocr = build_ocr(s, llm)
     log.info("mode=%s  llm=%s  ocr=%s", s.mode, llm.name, ocr.name)
 
-    log.info("[1/8] intake")
+    log.info("[1/9] intake")
     t0 = time.time()
     sub.files = ingest(inputs, work)
     _event(sub, "intake", t0, files=len(sub.files),
            duplicates=sum(1 for f in sub.files if f.duplicate_of))
 
-    log.info("[2/8] preprocess: splitting files into pages/sheets/images")
+    log.info("[2/9] preprocess: splitting files into pages/sheets/images")
     t0 = time.time()
     sub.units = build_units(sub.files, work, s)
     _event(sub, "preprocess", t0, units=len(sub.units),
            needs_ocr=sum(1 for u in sub.units if u.image_path and not u.text))
 
-    log.info("[3/8] ocr")
+    log.info("[3/9] ocr")
     t0 = time.time()
     run_ocr(sub.units, ocr, sub.files)
     _event(sub, "ocr", t0, engines=sorted({u.text_source for u in sub.units}))
 
-    log.info("[4/8] classify + group")
+    log.info("[4/9] classify + group")
     t0 = time.time()
     sub.classified, subjects = classify_units(sub.units, llm)
     sub.documents = group_documents(sub.classified, subjects, sub.files)
     _event(sub, "classify", t0, llm=llm.name, documents=len(sub.documents),
            needs_review=sum(1 for c in sub.classified if c.classification.needs_review))
 
-    log.info("[5/8] extract facts")
+    log.info("[5/9] extract facts")
     t0 = time.time()
     sub.extractions = extract_documents(sub, llm)
     totals = {"found": 0, "missing": 0, "invalid": 0, "unverified": 0}
@@ -78,7 +79,7 @@ def process(inputs: list[Path], settings: Settings | None = None,
            documents={st: sum(1 for e in sub.extractions if e.status == st)
                       for st in ("ok", "not_run", "skipped", "error")}, facts=totals)
 
-    log.info("[6/8] reconcile across documents")
+    log.info("[6/9] reconcile across documents")
     t0 = time.time()
     sub.reconciliation = reconcile(sub)
     rec = sub.reconciliation
@@ -87,7 +88,7 @@ def process(inputs: list[Path], settings: Settings | None = None,
                      for k in ("conflict", "gap", "possible_misread", "outdated_document", "superseded")},
            needs_recheck=sum(1 for f in rec.findings if f.needs_recheck))
 
-    log.info("[7/8] agent recheck of flagged findings")
+    log.info("[7/9] agent recheck of flagged findings")
     t0 = time.time()
     recheck_findings(sub, llm, work, s.render_dpi)
     reviewed = [f for f in rec.findings if f.review]
@@ -96,13 +97,20 @@ def process(inputs: list[Path], settings: Settings | None = None,
                      for v in ("confirmed", "resolved", "corrected", "needs_human", "not_run")},
            tool_calls=sum(len(f.review.steps) for f in reviewed))
 
-    log.info("[8/8] apply underwriting rules")
+    log.info("[8/9] apply underwriting rules")
     t0 = time.time()
     sub.decision = evaluate(sub)
     d = sub.decision
     _event(sub, "rules", t0, outcome=d.outcome, route=d.route, reasons=d.reasons,
            rules_version=d.rules_version,
            results={k: sum(1 for r in d.results if r.status == k) for k in ("pass", "fail", "unknown", "info")})
+
+    log.info("[9/9] AI analysis")
+    t0 = time.time()
+    sub.analysis = analyze(sub, llm)
+    _event(sub, "analysis", t0, llm=llm.name, status=sub.analysis.status,
+           concerns=len(sub.analysis.concerns), recommendations=len(sub.analysis.recommendations),
+           citation_warnings=len(sub.analysis.warnings))
 
     (work / "submission.json").write_text(sub.model_dump_json(indent=2))
     return sub
@@ -164,6 +172,21 @@ def _print_summary(sub: Submission) -> None:
             print(f"  {marks[r.status]} {r.rule_id:<3} {r.title}{eff}")
             if r.status != "pass":
                 print(f"         {r.message}")
+    if sub.analysis:
+        a = sub.analysis
+        print(f"\nAI ANALYSIS ({a.status})")
+        if a.summary:
+            print(f"  {a.summary}")
+        if a.concerns:
+            print("  Concerns:")
+            for c in a.concerns:
+                print(f"   - [{c.severity}] {c.title} {c.cites}\n       {c.detail}")
+        if a.recommendations:
+            print("  Next actions:")
+            for r in a.recommendations:
+                print(f"   - ({r.owner}) {r.action} {r.cites}")
+        for w in a.warnings:
+            print(f"  warning: {w}")
     print("\nEvents:", json.dumps(sub.events, indent=1))
 
 

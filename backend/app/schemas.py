@@ -91,6 +91,7 @@ class Submission(BaseModel):
     extractions: list["Extraction"] = Field(default_factory=list)
     reconciliation: "Reconciliation | None" = None
     decision: "Decision | None" = None
+    analysis: "Analysis | None" = None
     events: list[dict] = Field(default_factory=list)   # audit trail of pipeline steps
 
 
@@ -224,6 +225,31 @@ class Decision(BaseModel):
     results: list[RuleResult] = Field(default_factory=list)
     assumptions: dict = Field(default_factory=dict)
     rules_version: str = ""                # hash of rules.yaml, for audit
+
+
+# ---------------------------------------------------------------- stage 6: AI analysis
+
+class Concern(BaseModel):
+    title: str
+    detail: str
+    severity: str                          # high | medium | low
+    cites: list[str] = Field(default_factory=list)   # rule / finding / document ids
+
+
+class Recommendation(BaseModel):
+    action: str
+    owner: str                             # agent | underwriter | operations
+    reason: str = ""
+    cites: list[str] = Field(default_factory=list)
+
+
+class Analysis(BaseModel):
+    status: str = "ok"                     # ok | not_run | error
+    summary: str = ""
+    concerns: list[Concern] = Field(default_factory=list)
+    recommendations: list[Recommendation] = Field(default_factory=list)
+    warnings: list[str] = Field(default_factory=list)  # citation problems found by the check
+    model: str = ""
 
 
 Entity.model_rebuild()
