@@ -1,0 +1,198 @@
+# Knight Specialty -- Trucking Program underwriting rules
+# Source: Knight_Guideline(Mockup).docx (one-page mockup guideline, fictitious).
+#
+# Each rule names the guideline section it implements, a check (implemented in
+# backend/app/rules/checks.py), what happens when it fails, and its parameters.
+#   on_fail: decline -> the account is declined
+#            refer   -> an underwriter must review before quoting
+#            info    -> shown to the underwriter, does not change the decision
+# A check that cannot be verified from the documents returns "unknown", which refers.
+#
+# Decision: any failed decline rule -> DECLINE; else any failed/unknown refer rule -> REFER;
+# else PROCEED. Routing: 1-10 power units -> Small Fleet underwriting, 11+ -> Fleet.
+
+settings:
+  routing:
+    small_fleet_max_units: 10
+  # Open questions from the case study, decided here so they are visible and changeable.
+  assumptions:
+    # "Non-listed states" in Prohibited exposures: does it mean where the account is based
+    # (domicile/garaging) or anywhere it operates? Default: domicile. Interstate operation is
+    # the target risk, so operating miles in other states are reported, not prohibited.
+    non_listed_states_scope: domicile        # domicile | operations
+    # A scheduled driver who fails the safe-driver baseline (e.g. no CDL): the guideline's
+    # decline list names specific violations; baseline failures are referred so the driver
+    # can be excluded or the facts corrected. Set to decline for a stricter reading.
+    baseline_failure_outcome: refer          # refer | decline
+    # The date the 60-day and 90-day windows are measured from.
+    window_anchor: application_date          # application_date | effective_date
+
+rules:
+  # ---------------------------------------------------------------- appetite
+  - id: A1
+    section: Program appetite
+    title: Only eligible vehicle types (semi-trucks / tractors)
+    check: vehicle_types_eligible
+    on_fail: decline
+    params:
+      prohibited: [straight truck, tow, wrecker, dump, concrete, mixer, pump, crane, mobile equipment]
+  - id: A2
+    section: Program appetite
+    title: New ventures meet the experience requirement
+    check: new_venture
+    on_fail: refer
+    params: {min_years_in_business: 2}
+  - id: A3
+    section: Coverage snapshot
+    title: No auto liability deductible requested
+    check: no_liability_deductible
+    on_fail: refer
+  - id: A4
+    section: Coverage snapshot
+    title: Physical damage is not available
+    check: physical_damage_not_requested
+    on_fail: info
+
+  # ---------------------------------------------------------------- states
+  - id: B1
+    section: Available states
+    title: Account is based in an available state
+    check: domicile_state_available
+    on_fail: decline
+    params: &states
+      states: [AL, AZ, AR, CA, SC, SD, TN, TX, UT, VA, WV, WI, WY]
+  - id: B2
+    section: Prohibited exposures
+    title: Operations in non-listed states
+    check: operating_states
+    on_fail: info          # becomes decline when non_listed_states_scope = operations
+    params: *states
+  - id: B3
+    section: Prohibited exposures
+    title: No operations within 50 miles of the USA/Mexico border
+    check: mexico_border
+    on_fail: refer
+    params:
+      border_states: [CA, AZ, NM, TX]
+
+  # ---------------------------------------------------------------- submission requirements
+  - id: C1
+    section: Submission requirements
+    title: Application includes FEIN/SSN
+    check: fact_present
+    on_fail: refer
+    params: {field: fein, label: FEIN/SSN}
+  - id: C2
+    section: Submission requirements
+    title: Application includes MC/Docket number
+    check: fact_present
+    on_fail: refer
+    params: {field: mc_number, label: MC/Docket number}
+  - id: C3
+    section: Submission requirements
+    title: Application is signed
+    check: application_signed
+    on_fail: refer
+  - id: C4
+    section: Submission requirements
+    title: Loss runs valued within 60 days
+    check: loss_runs_current
+    on_fail: refer
+    params: {max_age_days: 60}
+  - id: C5
+    section: Submission requirements
+    title: Loss runs cover the expiring year and at least 3 prior years
+    check: loss_run_years
+    on_fail: refer
+    params: {prior_years: 3}
+  - id: C6
+    section: Submission requirements
+    title: Most recent 4 quarters of IFTA reports
+    check: ifta_quarters
+    on_fail: refer
+    params: {quarters: 4}
+  - id: C7
+    section: Submission requirements
+    title: Every scheduled driver has an MVR dated within 90 days
+    check: mvrs_current
+    on_fail: refer
+    params: {max_age_days: 90}
+  - id: C8
+    section: Submission requirements
+    title: Vehicle schedule has year, make, 17-character VIN and value for every unit
+    check: vehicle_schedule_complete
+    on_fail: refer
+
+  # ---------------------------------------------------------------- safe-driver criteria
+  - id: D1
+    section: Safe driver criteria
+    title: Every scheduled driver holds a valid commercial license (CDL)
+    check: drivers_have_cdl
+    on_fail: baseline          # resolved from settings.assumptions.baseline_failure_outcome
+  - id: D2
+    section: Safe driver criteria
+    title: At least 2 years of CDL experience
+    check: cdl_experience
+    on_fail: baseline
+    params: {min_years: 2}
+  - id: D3
+    section: Safe driver criteria
+    title: Drivers are 23 or older; drivers 65+ need a DOT medical report
+    check: driver_ages
+    on_fail: baseline
+    params: {min_age: 23, medical_age: 65}
+
+  # ---------------------------------------------------------------- decline / escalation flags
+  - id: E1
+    section: Driver point thresholds
+    title: No more than 6 points in 3 years or 4 points in 12 months
+    check: driver_points
+    on_fail: refer
+    params: {max_points_3y: 6, max_points_12m: 4}
+  - id: E2
+    section: Unacceptable driver history
+    title: No unacceptable violations
+    check: unacceptable_violations
+    on_fail: decline
+    params:
+      keywords: [DUI, DWI, INTOXICATED, HOMICIDE, VEHICULAR ASSAULT, RECKLESS, NEGLIGENT,
+                 HIT AND RUN, HIT-AND-RUN, LEAVING THE SCENE, FLEEING, ELUDING, FELONY, SCHOOL BUS]
+      speeding_over_mph: 30
+  - id: E3
+    section: Prohibited exposures
+    title: No prohibited cargo or operations
+    check: prohibited_exposures
+    on_fail: decline
+    params:
+      keywords: [HAZMAT, HAZARDOUS, LITHIUM, BATTER, WASTE, GARBAGE, TOW, RECOVERY, INTERMODAL, CONTAINER]
+  - id: E4
+    section: Selective exposures
+    title: Selective exposures (auto haulers, box trucks)
+    check: selective_exposures
+    on_fail: info
+    params:
+      keywords: [AUTO HAUL, CAR HAUL, VEHICLE HAUL, BOX TRUCK, TRANSIT VAN]
+  - id: E5
+    section: Prior insurance
+    title: Continuous coverage for the most recent 3 years; lapses over 30 days explained
+    check: prior_insurance
+    on_fail: refer
+    params: {years: 3, max_lapse_days: 30}
+  - id: E6
+    section: Prior insurance
+    title: Losses reported for every prior term listed
+    check: losses_for_every_term
+    on_fail: refer
+
+  # ---------------------------------------------------------------- routing and referral
+  - id: F1
+    section: Routing and referral
+    title: Conflicting information across documents
+    check: open_conflicts
+    on_fail: refer
+    params: {severities: [high, medium]}
+  - id: F2
+    section: Routing and referral
+    title: Unreported drivers or vehicles in loss history
+    check: unreported_exposures
+    on_fail: refer

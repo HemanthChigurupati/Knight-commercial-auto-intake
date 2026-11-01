@@ -5,7 +5,7 @@ document by content, extract and reconcile the data, re-check conflicts with an 
 apply Knight's underwriting guideline as deterministic rules, and present one consolidated
 view to the underwriter.
 
-> Work in progress. Stages 1-4 (classification, extraction, reconciliation, agent recheck) are built and tested.
+> Work in progress. Stages 1-5 (classification, extraction, reconciliation, agent recheck, rules) are built and tested.
 
 ## Pipeline
 
@@ -24,7 +24,11 @@ view to the underwriter.
    four read-only tools (read text, view page image, decode VIN, record verdict), capped at 6 turns;
    verdicts confirmed / resolved / corrected / needs_human with the full tool trace kept for audit.
    A plain tool-use loop, no framework.
-9. Rules -> 10. AI analysis -> 11. Review *(in progress)*
+9. **Rules** (`rules/rules.yaml` + `app/rules/`): Knight's guideline as data -- each rule cites its
+   guideline section, a check, an outcome on failure and its thresholds. Open questions from the case
+   study are named settings with defaults. Decision: any decline -> DECLINE, else any refer or
+   unverifiable -> REFER, else PROCEED; routing by power units. Plain code, no AI.
+10. AI analysis -> 11. Review *(in progress)*
 
 `tests/test_reconcile.py` holds the **expected-findings test**: it replays the recorded Bedrock
 run in `fixtures/` and checks that every issue an underwriter would find by hand is reported.

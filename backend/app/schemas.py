@@ -90,6 +90,7 @@ class Submission(BaseModel):
     documents: list[LogicalDocument] = Field(default_factory=list)
     extractions: list["Extraction"] = Field(default_factory=list)
     reconciliation: "Reconciliation | None" = None
+    decision: "Decision | None" = None
     events: list[dict] = Field(default_factory=list)   # audit trail of pipeline steps
 
 
@@ -199,6 +200,30 @@ class Finding(BaseModel):
 class Reconciliation(BaseModel):
     entities: list[Entity] = Field(default_factory=list)
     findings: list[Finding] = Field(default_factory=list)
+
+
+# ---------------------------------------------------------------- stage 5: rules
+
+class RuleResult(BaseModel):
+    rule_id: str
+    section: str
+    title: str
+    on_fail: str                           # decline | refer | info
+    status: str                            # pass | fail | unknown | info
+    effect: str = "none"                   # what this result does to the decision
+    message: str = ""
+    evidence: list[Observation] = Field(default_factory=list)
+    finding_ids: list[str] = Field(default_factory=list)
+
+
+class Decision(BaseModel):
+    outcome: str                           # decline | refer | proceed
+    route: str                             # small_fleet | fleet
+    route_reason: str = ""
+    reasons: list[str] = Field(default_factory=list)   # rule ids that drove the outcome
+    results: list[RuleResult] = Field(default_factory=list)
+    assumptions: dict = Field(default_factory=dict)
+    rules_version: str = ""                # hash of rules.yaml, for audit
 
 
 Entity.model_rebuild()
