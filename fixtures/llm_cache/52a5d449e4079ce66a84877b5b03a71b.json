@@ -86,7 +86,7 @@
         "date": "03/14/2025",
         "description": "SPEED-TRUCK/TRAILER OVER 55 MPH",
         "points": "1",
-        "quote": "CONV 03/14/2025 04/22/2025 S92 DC06 22406A SPEED-TRUCK/TRAILER N STOCKTON 7718302 8XKT391 1\n  OVER 55 MPH",
+        "quote": "CONV 03/14/2025 04/22/2025 S92 DC06 22406A SPEED-TRUCK/TRAILER N STOCKTON 7718302 8XKT391 1\nOVER 55 MPH",
         "unit": "f009:p8",
         "confidence": 0.97
       }

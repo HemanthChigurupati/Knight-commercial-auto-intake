@@ -98,7 +98,7 @@
         "at_fault": "",
         "quote": "ACCD 02/11/2024  -  AA01 POLC ** ACCIDENT ** N  NEW JERSEY *ACC*  -",
         "unit": "f009:p2",
-        "confidence": 0.97
+        "confidence": 0.96
       }
     ]
   }

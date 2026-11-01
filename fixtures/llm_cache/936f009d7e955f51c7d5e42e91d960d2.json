@@ -61,7 +61,7 @@
       "value": "",
       "quote": "Physical Garaged Address\tCounty\tCity\tState\tZip",
       "unit": "f003:s1",
-      "confidence": 0.9
+      "confidence": 0.92
     },
     "years_in_business": {
       "value": "5",
@@ -107,7 +107,7 @@
     },
     "intermodal": {
       "value": "no",
-      "quote": "Do you haul any Intermodal Containers? (If UIAA agreement in place, please provide a copy with application)\tFalse",
+      "quote": "Do you haul any Intermodal Containers?\tFalse",
       "unit": "f003:s1",
       "confidence": 0.99
     },
@@ -124,7 +124,7 @@
       "confidence": 0.99
     },
     "radius_breakdown": {
-      "value": "< 50Miles 10%; 51-200 Miles 20%; 201-500 Miles 30%; > 500 Miles 40%",
+      "value": "< 50Miles 10%, 51-200 Miles 20%, 201-500 Miles 30%, > 500 Miles 40%",
       "quote": "< 50Miles\t0.1\n51 - 200 Miles\t0.2\n201 - 500 Miles\t0.3\n> 500 Miles\t0.4",
       "unit": "f003:s1",
       "confidence": 0.98

@@ -1,0 +1,30 @@
+{
+  "schema": "agent_turn",
+  "role": "agent",
+  "model": "us.anthropic.claude-sonnet-4-6",
+  "data": {
+    "content": [
+      {
+        "type": "text",
+        "text": "Let me check the image for p.10 (OCR source) and the text for p.9 simultaneously, since the discrepancy is between these sources."
+      },
+      {
+        "type": "tool_use",
+        "id": "tooluse_XXC9uG4rY48WrroOYusnWU",
+        "name": "view_source_image",
+        "input": {
+          "unit_id": "f009:p10"
+        }
+      },
+      {
+        "type": "tool_use",
+        "id": "tooluse_rKfLYAPrfMfWnDSjNPPzpv",
+        "name": "read_source_text",
+        "input": {
+          "unit_id": "f009:p9"
+        }
+      }
+    ],
+    "stop_reason": "tool_use"
+  }
+}

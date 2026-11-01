@@ -25,7 +25,7 @@
       "value": "",
       "quote": "DOB:",
       "unit": "f009:p4",
-      "confidence": 0.97
+      "confidence": 0.95
     },
     "license_class": {
       "value": "A",
@@ -88,7 +88,7 @@
         "points": "4",
         "quote": "VIOL 06/07/2023  S95 SA95 4-98 SPEEDING 15-29 MPH Y 79 PENNSYLVANIA  4\n  OVER LIMIT",
         "unit": "f009:p4",
-        "confidence": 0.98
+        "confidence": 0.97
       }
     ],
     "accidents": [
@@ -98,7 +98,7 @@
         "at_fault": "",
         "quote": "ACCD 02/11/2024  -  AA01 POLC ** ACCIDENT ** N  NEW JERSEY *ACC*  -",
         "unit": "f009:p4",
-        "confidence": 0.97
+        "confidence": 0.95
       }
     ]
   }

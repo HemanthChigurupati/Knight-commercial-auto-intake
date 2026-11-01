@@ -61,7 +61,7 @@
       "value": "2021",
       "quote": "04/26/2021 APPLICATION RECEIVED AC",
       "unit": "f009:p5",
-      "confidence": 0.8
+      "confidence": 0.75
     },
     "cdl_first_issued": {
       "value": "05/28/2022",
@@ -79,7 +79,7 @@
       "value": "",
       "quote": "",
       "unit": "",
-      "confidence": 0.99
+      "confidence": 0.97
     },
     "violations": [],
     "accidents": []

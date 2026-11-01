@@ -1,0 +1,30 @@
+{
+  "schema": "agent_turn",
+  "role": "agent",
+  "model": "us.anthropic.claude-sonnet-4-6",
+  "data": {
+    "content": [
+      {
+        "type": "text",
+        "text": "I'll check both source documents simultaneously to verify the date of birth values."
+      },
+      {
+        "type": "tool_use",
+        "id": "tooluse_7fnMqYWuVQmxcOJGaXiO9j",
+        "name": "read_source_text",
+        "input": {
+          "unit_id": "f005:s1"
+        }
+      },
+      {
+        "type": "tool_use",
+        "id": "tooluse_mWj1pDwsWpSjvqEMciyvK0",
+        "name": "view_source_image",
+        "input": {
+          "unit_id": "f009:p8"
+        }
+      }
+    ],
+    "stop_reason": "tool_use"
+  }
+}

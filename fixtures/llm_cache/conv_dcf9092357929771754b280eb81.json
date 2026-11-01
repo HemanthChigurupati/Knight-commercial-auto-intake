@@ -1,0 +1,22 @@
+{
+  "schema": "agent_turn",
+  "role": "agent",
+  "model": "us.anthropic.claude-sonnet-4-6",
+  "data": {
+    "content": [
+      {
+        "type": "text",
+        "text": "Since p.10 came from OCR, let me view the image to confirm the expiration date printed on the license card."
+      },
+      {
+        "type": "tool_use",
+        "id": "tooluse_itx8C97hIyGTISq2eNVQfr",
+        "name": "view_source_image",
+        "input": {
+          "unit_id": "f009:p10"
+        }
+      }
+    ],
+    "stop_reason": "tool_use"
+  }
+}

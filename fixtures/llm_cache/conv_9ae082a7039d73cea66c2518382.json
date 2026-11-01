@@ -1,0 +1,30 @@
+{
+  "schema": "agent_turn",
+  "role": "agent",
+  "model": "us.anthropic.claude-sonnet-4-6",
+  "data": {
+    "content": [
+      {
+        "type": "text",
+        "text": "I'll check the Q4 2025 IFTA return directly, since that's the one document showing \"LLC\" instead of \"INC\". Let me view both the text and image to verify."
+      },
+      {
+        "type": "tool_use",
+        "id": "tooluse_W468bvhUhft53SCvMrOmwi",
+        "name": "read_source_text",
+        "input": {
+          "unit_id": "f013:p1"
+        }
+      },
+      {
+        "type": "tool_use",
+        "id": "tooluse_InOPDGs6RMRV8Mfp0UbDUN",
+        "name": "view_source_image",
+        "input": {
+          "unit_id": "f013:p1"
+        }
+      }
+    ],
+    "stop_reason": "tool_use"
+  }
+}
