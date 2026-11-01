@@ -15,6 +15,12 @@ from app.schemas import DocType
 
 SAMPLES = Path(__file__).resolve().parents[2] / "samples" / "cobalt-mesa"
 
+# These tests OCR the scans offline (empty recordings), so they need the Tesseract binary.
+from app.providers.ocr import find_tesseract  # noqa: E402
+
+pytestmark = pytest.mark.skipif(find_tesseract() is None,
+                                reason="Tesseract OCR not installed (see README)")
+
 
 @pytest.fixture(scope="module")
 def submission(tmp_path_factory):

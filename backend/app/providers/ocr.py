@@ -28,12 +28,35 @@ class OCRProvider(Protocol):
     def read(self, image_path: str, hint: str = "") -> OCRResult: ...
 
 
+def find_tesseract() -> str | None:
+    """The tesseract binary: on PATH, or in the default Windows/macOS install folders."""
+    import os
+    import shutil
+
+    found = shutil.which("tesseract")
+    if found:
+        return found
+    for candidate in (r"C:\Program Files\Tesseract-OCR\tesseract.exe",
+                      r"C:\Program Files (x86)\Tesseract-OCR\tesseract.exe",
+                      os.path.expandvars(r"%LOCALAPPDATA%\Programs\Tesseract-OCR\tesseract.exe"),
+                      "/opt/homebrew/bin/tesseract", "/usr/local/bin/tesseract"):
+        if os.path.exists(candidate):
+            return candidate
+    return None
+
+
 class TesseractOCR:
     name = "tesseract"
 
     def read(self, image_path, hint=""):
         import pytesseract
         from PIL import Image
+
+        cmd = find_tesseract()
+        if cmd is None:
+            raise RuntimeError("Tesseract OCR is not installed (needed for demo-mode OCR of scans "
+                               "without recordings). Install it or run in aws mode.")
+        pytesseract.pytesseract.tesseract_cmd = cmd
 
         img = Image.open(image_path)
         data = pytesseract.image_to_data(img, output_type=pytesseract.Output.DICT)
