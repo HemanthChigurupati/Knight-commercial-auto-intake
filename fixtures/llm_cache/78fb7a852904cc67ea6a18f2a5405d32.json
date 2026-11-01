@@ -67,7 +67,7 @@
       "value": "",
       "quote": "",
       "unit": "f009:p2",
-      "confidence": 0.92
+      "confidence": 0.9
     },
     "order_date": {
       "value": "10/09/2026",
@@ -98,7 +98,7 @@
         "at_fault": "",
         "quote": "ACCD 02/11/2024  -  AA01 POLC ** ACCIDENT ** N  NEW JERSEY *ACC*  -",
         "unit": "f009:p2",
-        "confidence": 0.96
+        "confidence": 0.97
       }
     ]
   }

@@ -6,11 +6,11 @@
     "content": [
       {
         "type": "text",
-        "text": "I'll check both the vehicle schedule and the quote form simultaneously to verify the counts."
+        "text": "I'll check both the vehicle schedule and the quote form simultaneously to compare the number of power units."
       },
       {
         "type": "tool_use",
-        "id": "tooluse_r45AOyJLs7za6JkpGT6o65",
+        "id": "tooluse_3Zoo9NxBKutGEux5fZtuBk",
         "name": "read_source_text",
         "input": {
           "unit_id": "f003:s2"
@@ -18,18 +18,10 @@
       },
       {
         "type": "tool_use",
-        "id": "tooluse_i0DJnuzKbtKQhdhRS9EiSa",
+        "id": "tooluse_x7GLmxtHfIDAAflxXCgzc5",
         "name": "read_source_text",
         "input": {
           "unit_id": "f004:p1"
-        }
-      },
-      {
-        "type": "tool_use",
-        "id": "tooluse_QG4xsDTNSdtwce0Dsjzyw0",
-        "name": "read_source_text",
-        "input": {
-          "unit_id": "f014:s1"
         }
       }
     ],

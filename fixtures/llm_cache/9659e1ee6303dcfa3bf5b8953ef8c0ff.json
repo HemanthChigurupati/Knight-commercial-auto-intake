@@ -22,10 +22,10 @@
       "confidence": 0.99
     },
     "coverage": {
-      "value": "AUTO LIABILITY, PHYSICAL DAMAGE, CARGO",
+      "value": "CARGO",
       "quote": "COVERAGE  AUTO LIABLITY  PHYSICAL DAMAGE  CARGO",
       "unit": "f008:p1",
-      "confidence": 0.95
+      "confidence": 0.85
     },
     "period_start": {
       "value": "12/16/2025",

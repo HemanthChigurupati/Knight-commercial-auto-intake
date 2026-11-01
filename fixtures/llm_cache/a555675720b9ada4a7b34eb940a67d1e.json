@@ -55,7 +55,7 @@
       "value": "0-500 Miles (CA only) 15%, 501-750 Miles (Regional) 35%, 48 States 50%",
       "quote": "RADIUS INFO:  0-500 Miles (CA only) _1_5____% 501-750 Miles (Regional) _3_5___% 48 States __5_0____%",
       "unit": "f004:p1",
-      "confidence": 0.97
+      "confidence": 0.95
     },
     "liability_limit": {
       "value": "$1,000,000",

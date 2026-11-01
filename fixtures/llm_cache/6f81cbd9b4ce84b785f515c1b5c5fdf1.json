@@ -61,7 +61,7 @@
       "value": "",
       "quote": "",
       "unit": "f009:p4",
-      "confidence": 0.95
+      "confidence": 0.9
     },
     "cdl_first_issued": {
       "value": "",
@@ -95,10 +95,10 @@
       {
         "date": "02/11/2024",
         "location": "NEW JERSEY",
-        "at_fault": "",
+        "at_fault": "N",
         "quote": "ACCD 02/11/2024  -  AA01 POLC ** ACCIDENT ** N  NEW JERSEY *ACC*  -",
         "unit": "f009:p4",
-        "confidence": 0.95
+        "confidence": 0.97
       }
     ]
   }

@@ -19,7 +19,7 @@
       "value": "Corporation",
       "quote": "Corporation\tX",
       "unit": "f003:s1",
-      "confidence": 0.99
+      "confidence": 0.97
     },
     "fein": {
       "value": "",
@@ -40,7 +40,7 @@
       "confidence": 0.99
     },
     "application_date": {
-      "value": "2026-10-22",
+      "value": "2026-10-22 00:00:00",
       "quote": "Date of Application\t2026-10-22 00:00:00",
       "unit": "f003:s1",
       "confidence": 0.97
@@ -67,7 +67,7 @@
       "value": "5",
       "quote": "How many years of experience do you have related to operating a transportation company?\t5",
       "unit": "f003:s1",
-      "confidence": 0.98
+      "confidence": 0.97
     },
     "years_prior_insurance": {
       "value": "5 YRS",
@@ -97,17 +97,17 @@
       "value": "no",
       "quote": "New Venture?\tFalse",
       "unit": "f003:s1",
-      "confidence": 0.99
+      "confidence": 0.97
     },
     "owner_is_driver": {
       "value": "no",
       "quote": "Is Owner a driver?\tFalse",
       "unit": "f003:s1",
-      "confidence": 0.99
+      "confidence": 0.97
     },
     "intermodal": {
       "value": "no",
-      "quote": "Do you haul any Intermodal Containers?\tFalse",
+      "quote": "Do you haul any Intermodal Containers? (If UIAA agreement in place, please provide a copy with application)\tFalse",
       "unit": "f003:s1",
       "confidence": 0.99
     },
@@ -124,26 +124,26 @@
       "confidence": 0.99
     },
     "radius_breakdown": {
-      "value": "< 50Miles 10%, 51-200 Miles 20%, 201-500 Miles 30%, > 500 Miles 40%",
+      "value": "< 50Miles 0.1; 51 - 200 Miles 0.2; 201 - 500 Miles 0.3; > 500 Miles 0.4",
       "quote": "< 50Miles\t0.1\n51 - 200 Miles\t0.2\n201 - 500 Miles\t0.3\n> 500 Miles\t0.4",
       "unit": "f003:s1",
-      "confidence": 0.98
+      "confidence": 0.99
     },
     "signed": {
       "value": "no",
       "quote": "Signed this\tBy:\n(Date of Signature)\t(Signature of Insured)",
       "unit": "f003:s1",
-      "confidence": 0.97
+      "confidence": 0.95
     },
     "drivers": [
       {
         "first_name": "DEVRAJ",
         "last_name": "SANDHU",
-        "dob": "1979-09-14",
+        "dob": "1979-09-14 00:00:00",
         "license_number": "C4471925",
         "license_state": "CA",
         "experience": "CLASS C",
-        "hire_date": "OWNER",
+        "hire_date": "Owner",
         "quote": "1\tDEVRAJ\tSANDHU\t1979-09-14 00:00:00\tC4471925\tCA\tOwner\tCLASS C\t0\tYES\t0\t0",
         "unit": "f003:s2",
         "confidence": 0.95
@@ -154,7 +154,7 @@
         "year": "",
         "make": "",
         "model": "TRACTOR",
-        "vin": "",
+        "vin": "VIN & VEHICLE",
         "value": "$  -",
         "quote": "1\tTRACTOR\tVIN & VEHICLE\tTractor\t80000\t$  -",
         "unit": "f003:s2",

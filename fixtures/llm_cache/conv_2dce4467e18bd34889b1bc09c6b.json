@@ -10,7 +10,7 @@
       },
       {
         "type": "tool_use",
-        "id": "tooluse_XXC9uG4rY48WrroOYusnWU",
+        "id": "tooluse_6qWcLwfLQ7I9LOK7nSXqXP",
         "name": "view_source_image",
         "input": {
           "unit_id": "f009:p10"
@@ -18,7 +18,7 @@
       },
       {
         "type": "tool_use",
-        "id": "tooluse_rKfLYAPrfMfWnDSjNPPzpv",
+        "id": "tooluse_AjSwItcFViyTxoXhMZEytd",
         "name": "read_source_text",
         "input": {
           "unit_id": "f009:p9"
