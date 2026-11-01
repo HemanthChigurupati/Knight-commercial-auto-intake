@@ -88,4 +88,44 @@ class Submission(BaseModel):
     units: list[ContentUnit] = Field(default_factory=list)
     classified: list[ClassifiedUnit] = Field(default_factory=list)
     documents: list[LogicalDocument] = Field(default_factory=list)
+    extractions: list["Extraction"] = Field(default_factory=list)
     events: list[dict] = Field(default_factory=list)   # audit trail of pipeline steps
+
+
+# ---------------------------------------------------------------- stage 2: extraction
+
+class FactStatus(str, Enum):
+    FOUND = "found"          # value read and grounded in the source
+    MISSING = "missing"      # the extractor looked and the document does not state it
+    INVALID = "invalid"      # value read, but fails a format rule (e.g. 16-character VIN)
+    UNVERIFIED = "unverified"  # value returned but its quote was not found on the page
+
+
+class Fact(BaseModel):
+    """One extracted value with its proof."""
+    name: str
+    kind: str                          # text | date | vin | int | money | bool | percent
+    raw: str = ""                      # value exactly as the model read it
+    value: str | int | float | bool | None = None   # normalized (ISO date, upper-case VIN...)
+    quote: str = ""                    # verbatim text from the page that shows the value
+    unit_id: str | None = None         # which page/sheet/photo the quote is on
+    model_confidence: float = 0.0
+    grounding: float = 0.0             # 1.0 quote found verbatim ... 0.4 not found
+    confidence: float = 0.0            # combined reading confidence
+    status: FactStatus = FactStatus.MISSING
+    checks: list[str] = Field(default_factory=list)   # format/validation findings
+
+
+class Extraction(BaseModel):
+    """Everything extracted from one logical document."""
+    doc_id: str
+    doc_type: DocType
+    status: str = "ok"                 # ok | not_run (no model available) | skipped | error
+    model: str = ""
+    facts: dict[str, Fact] = Field(default_factory=dict)
+    # Repeating rows (drivers, vehicles, claims...): list name -> rows -> field -> Fact
+    records: dict[str, list[dict[str, Fact]]] = Field(default_factory=dict)
+    error: str = ""
+
+
+Submission.model_rebuild()

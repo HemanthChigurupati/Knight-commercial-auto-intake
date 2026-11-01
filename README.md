@@ -5,7 +5,7 @@ document by content, extract and reconcile the data, re-check conflicts with an 
 apply Knight's underwriting guideline as deterministic rules, and present one consolidated
 view to the underwriter.
 
-> Work in progress. Stage 1 (intake -> preprocessing -> OCR -> classification) is built and tested.
+> Work in progress. Stage 1 (intake -> classification) and stage 2 (extraction) are built and tested.
 
 ## Pipeline
 
@@ -14,7 +14,10 @@ view to the underwriter.
 3. **OCR**: scans -> Textract (aws) or Tesseract (demo); photos -> Claude vision
 4. **Classify**: per page, content only; keyword signals + Claude Haiku, combined confidence
 5. **Group**: pages regrouped into logical documents (one MVR per driver, one loss run per term)
-6. Extract -> 7. Reconcile -> 8. Agentic recheck -> 9. Rules -> 10. AI analysis -> 11. Review *(in progress)*
+6. **Extract**: facts per document type from `extraction/specs.py` (the rule -> fact map); each fact
+   carries value, verbatim quote, page and confidence, and is checked in code (`pipeline/verify.py`):
+   quote grounding, normalization, VIN length/characters/check digit
+7. Reconcile -> 8. Agentic recheck -> 9. Rules -> 10. AI analysis -> 11. Review *(in progress)*
 
 ## Modes
 

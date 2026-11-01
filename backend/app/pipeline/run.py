@@ -18,6 +18,7 @@ from ..providers.llm import build_llm
 from ..providers.ocr import build_ocr
 from ..schemas import Submission
 from .classify import classify_units, group_documents
+from .extract import all_facts, extract_documents, fact_counts
 from .intake import ingest
 from .preprocess import build_units, run_ocr
 
@@ -39,29 +40,40 @@ def process(inputs: list[Path], settings: Settings | None = None,
     ocr = build_ocr(s, llm)
     log.info("mode=%s  llm=%s  ocr=%s", s.mode, llm.name, ocr.name)
 
-    log.info("[1/4] intake")
+    log.info("[1/5] intake")
     t0 = time.time()
     sub.files = ingest(inputs, work)
     _event(sub, "intake", t0, files=len(sub.files),
            duplicates=sum(1 for f in sub.files if f.duplicate_of))
 
-    log.info("[2/4] preprocess: splitting files into pages/sheets/images")
+    log.info("[2/5] preprocess: splitting files into pages/sheets/images")
     t0 = time.time()
     sub.units = build_units(sub.files, work, s)
     _event(sub, "preprocess", t0, units=len(sub.units),
            needs_ocr=sum(1 for u in sub.units if u.image_path and not u.text))
 
-    log.info("[3/4] ocr")
+    log.info("[3/5] ocr")
     t0 = time.time()
     run_ocr(sub.units, ocr, sub.files)
     _event(sub, "ocr", t0, engines=sorted({u.text_source for u in sub.units}))
 
-    log.info("[4/4] classify + group")
+    log.info("[4/5] classify + group")
     t0 = time.time()
     sub.classified, subjects = classify_units(sub.units, llm)
     sub.documents = group_documents(sub.classified, subjects, sub.files)
     _event(sub, "classify", t0, llm=llm.name, documents=len(sub.documents),
            needs_review=sum(1 for c in sub.classified if c.classification.needs_review))
+
+    log.info("[5/5] extract facts")
+    t0 = time.time()
+    sub.extractions = extract_documents(sub, llm)
+    totals = {"found": 0, "missing": 0, "invalid": 0, "unverified": 0}
+    for ex in sub.extractions:
+        for k, v in fact_counts(ex).items():
+            totals[k] += v
+    _event(sub, "extract", t0, llm=llm.name,
+           documents={st: sum(1 for e in sub.extractions if e.status == st)
+                      for st in ("ok", "not_run", "skipped", "error")}, facts=totals)
 
     (work / "submission.json").write_text(sub.model_dump_json(indent=2))
     return sub
@@ -77,6 +89,19 @@ def _print_summary(sub: Submission) -> None:
         print(f"      units: {', '.join(d.unit_ids)}")
         for o in d.observations:
             print(f"      - {o}")
+    print("\nExtraction")
+    titles = {d.doc_id: d.title for d in sub.documents}
+    for ex in sub.extractions:
+        c = fact_counts(ex)
+        print(f"{ex.doc_id}  {titles[ex.doc_id][:40]:<40} {ex.status:<8}"
+              + (f" found {c['found']}, missing {c['missing']}, "
+                 f"flagged {c['invalid'] + c['unverified']}" if ex.status == "ok" else ex.error))
+        for f in all_facts(ex):
+            if f.checks:
+                print(f"      ! {f.name} = {f.value!r}: {'; '.join(f.checks)}")
+        missing = [f.name for f in ex.facts.values() if f.status.value == "missing"]
+        if missing:
+            print(f"      - not stated: {', '.join(missing)}")
     print("\nEvents:", json.dumps(sub.events, indent=1))
 
 
