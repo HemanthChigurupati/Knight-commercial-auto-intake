@@ -1,0 +1,69 @@
+{
+  "schema": "extract_driver_schedule",
+  "role": "extract",
+  "model": "us.anthropic.claude-sonnet-4-6",
+  "data": {
+    "drivers": [
+      {
+        "first_name": "DEVRAJ",
+        "last_name": "SANDHU",
+        "dob": "1979-09-14 00:00:00",
+        "license_number": "C4471925",
+        "license_state": "CA",
+        "experience": "CLASS C",
+        "hire_date": "OWNER",
+        "quote": "1\tDEVRAJ\tSANDHU\t1979-09-14 00:00:00\tCA\tC4471925\tCLASS C\tOWNER",
+        "unit": "f005:s1",
+        "confidence": 0.99
+      },
+      {
+        "first_name": "MARCUS J",
+        "last_name": "WHITFIELD",
+        "dob": "1971-03-22 00:00:00",
+        "license_number": "W38215604720918",
+        "license_state": "NJ",
+        "experience": "4+",
+        "hire_date": "2024-05-13 00:00:00",
+        "quote": "2\tMARCUS J\tWHITFIELD\t1971-03-22 00:00:00\tNJ\tW38215604720918\t4+\t2024-05-13 00:00:00",
+        "unit": "f005:s1",
+        "confidence": 0.99
+      },
+      {
+        "first_name": "ALEKSANDR P",
+        "last_name": "VOLKOV",
+        "dob": "1983-06-02 00:00:00",
+        "license_number": "V61930287415503",
+        "license_state": "NJ",
+        "experience": "4+",
+        "hire_date": "2024-09-03 00:00:00",
+        "quote": "3\tALEKSANDR P\tVOLKOV\t1983-06-02 00:00:00\tNJ\tV61930287415503\t4+\t2024-09-03 00:00:00",
+        "unit": "f005:s1",
+        "confidence": 0.99
+      },
+      {
+        "first_name": "LUIS E",
+        "last_name": "MORALES",
+        "dob": "1991-10-03 00:00:00",
+        "license_number": "M5520814",
+        "license_state": "CA",
+        "experience": "4+",
+        "hire_date": "2025-12-01 00:00:00",
+        "quote": "4\tLUIS E\tMORALES\t1991-10-03 00:00:00\tCA\tM5520814\t4+\t2025-12-01 00:00:00",
+        "unit": "f005:s1",
+        "confidence": 0.99
+      },
+      {
+        "first_name": "NATHANIEL K",
+        "last_name": "OSEI",
+        "dob": "1987-02-17 00:00:00",
+        "license_number": "O7314062",
+        "license_state": "CA",
+        "experience": "3+",
+        "hire_date": "2026-10-19 00:00:00",
+        "quote": "5\tNATHANIEL K\tOSEI\t1987-02-17 00:00:00\tCA\tO7314062\t3+\t2026-10-19 00:00:00",
+        "unit": "f005:s1",
+        "confidence": 0.99
+      }
+    ]
+  }
+}

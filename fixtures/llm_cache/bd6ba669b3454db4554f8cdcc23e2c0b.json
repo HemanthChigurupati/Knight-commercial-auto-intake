@@ -1,0 +1,87 @@
+{
+  "schema": "extract_mvr",
+  "role": "extract",
+  "model": "us.anthropic.claude-sonnet-4-6",
+  "data": {
+    "driver_name": {
+      "value": "SANDHU, DEVRAJ",
+      "quote": "Name:  SANDHU, DEVRAJ",
+      "unit": "f009:p1",
+      "confidence": 0.99
+    },
+    "license_number": {
+      "value": "C4471925",
+      "quote": "License:  C4471925",
+      "unit": "f009:p1",
+      "confidence": 0.99
+    },
+    "license_state": {
+      "value": "CALIFORNIA",
+      "quote": "CALIFORNIA Driver Record - K2291",
+      "unit": "f009:p1",
+      "confidence": 0.99
+    },
+    "dob": {
+      "value": "09/14/1979",
+      "quote": "DOB:  09/14/1979",
+      "unit": "f009:p1",
+      "confidence": 0.99
+    },
+    "license_class": {
+      "value": "C",
+      "quote": "Class: C  NON-COMMERCIAL",
+      "unit": "f009:p1",
+      "confidence": 0.99
+    },
+    "license_type": {
+      "value": "NON-COMMERCIAL",
+      "quote": "Class: C  NON-COMMERCIAL",
+      "unit": "f009:p1",
+      "confidence": 0.99
+    },
+    "license_status": {
+      "value": "VALID",
+      "quote": "License: PERSONAL Issue: 08/21/2025 Expire: 09/14/2030 Status: VALID",
+      "unit": "f009:p1",
+      "confidence": 0.99
+    },
+    "license_issue_date": {
+      "value": "08/21/2025",
+      "quote": "Iss Date: 08/21/2025",
+      "unit": "f009:p1",
+      "confidence": 0.99
+    },
+    "license_expiry_date": {
+      "value": "09/14/2030",
+      "quote": "Exp Date: 09/14/2030",
+      "unit": "f009:p1",
+      "confidence": 0.99
+    },
+    "first_licensed_year": {
+      "value": "2011",
+      "quote": "Approx. Year Lic. First Issued: 2011",
+      "unit": "f009:p1",
+      "confidence": 0.99
+    },
+    "cdl_first_issued": {
+      "value": "",
+      "quote": "",
+      "unit": "f009:p1",
+      "confidence": 0.99
+    },
+    "order_date": {
+      "value": "10/09/2026",
+      "quote": "Order Date: 10/09/2026",
+      "unit": "f009:p1",
+      "confidence": 0.99
+    },
+    "stale_marker": {
+      "value": "",
+      "quote": "",
+      "unit": "f009:p1",
+      "confidence": 0.97
+    },
+    "violations": [],
+    "accidents": []
+  }
+}

@@ -1,0 +1,61 @@
+{
+  "schema": "extract_ifta_return",
+  "role": "extract",
+  "model": "us.anthropic.claude-sonnet-4-6",
+  "data": {
+    "taxpayer_name": {
+      "value": "COBALT MESA TRANSPORT LLC",
+      "quote": "Taxpayer Name:\nCOBALT MESA TRANSPORT LLC",
+      "unit": "f013:p1",
+      "confidence": 0.99
+    },
+    "account_number": {
+      "value": "247-918305",
+      "quote": "Account Number: 247-918305",
+      "unit": "f013:p1",
+      "confidence": 0.99
+    },
+    "period_start": {
+      "value": "October 01, 2025",
+      "quote": "Period Begin:\nOctober 01, 2025",
+      "unit": "f013:p1",
+      "confidence": 0.99
+    },
+    "period_end": {
+      "value": "December 31, 2025",
+      "quote": "Period End:\nDecember 31, 2025",
+      "unit": "f013:p1",
+      "confidence": 0.99
+    },
+    "total_miles": {
+      "value": "130,981",
+      "quote": "130,981\n130,981\n22,049\n21,719\n330",
+      "unit": "f013:p3",
+      "confidence": 0.97
+    },
+    "penalty": {
+      "value": "$0.00",
+      "quote": "2. Penalty\n$0.00",
+      "unit": "f013:p1",
+      "confidence": 0.99
+    },
+    "interest": {
+      "value": "$0.00",
+      "quote": "3. Interest\n$0.00",
+      "unit": "f013:p1",
+      "confidence": 0.99
+    },
+    "total_due": {
+      "value": "$2,790.11",
+      "quote": "4. TOTAL BALANCE DUE OR CREDIT\n$2,790.11",
+      "unit": "f013:p1",
+      "confidence": 0.99
+    },
+    "jurisdictions": {
+      "value": "Arizona, California, Delaware, Georgia, Idaho, Illinois, Indiana, Iowa, Kentucky, Kentucky Surcharge, Louisiana, Maryland, Mississippi, Missouri, Nebraska, Nevada, New Jersey, New Mexico, Ohio, Oklahoma, Oregon, Pennsylvania, South Carolina, Tennessee, Texas, Utah, Virginia, Washington, West Virginia, Wyoming",
+      "quote": "Arizona\n2. Diesel\n10,476\nCalifornia\n2. Diesel\n29,047\nDelaware\n2. Diesel\n1,385\nGeorgia\n2. Diesel\n1,341\nIdaho\n2. Diesel\n1,047\nIllinois\n2. Diesel\n8,021\nIndiana\n2. Diesel\n8,732\nlowa\n2. Diesel\n9,445\nKentucky\n2. Diesel\n1,844\nKentucky\nSurcharge\n2. Diesel\n0\nLouisiana\n2. Diesel\n1,457\nMaryland\n2. Diesel\n1,742\nMississippi\n2. Diesel\n1,747\nMissouri\n2. Diesel\n506\nNebraska\n2. Diesel\n7,009\nNevada\n2. Diesel\n5,709\nNew Jersey\n2. Diesel\n4,858\nNew Mexico\n2. Diesel\n1,416\nOhio\n2. Diesel\n5,998\nOklahoma\n2. Diesel\n949\nOregon\n2. Diesel\n1,674\nPennsylvania\n2. Diesel\n3,962\nSouth Carolina\n2. Diesel\n843\nTennessee\n2. Diesel\n921\nTexas\n2. Diesel\n1,060\nUtah\n2. Diesel\n9,090\nVirginia\n2. Diesel\n900\nWashington\n2. Diesel\n1,432\nWest Virginia\n2. Diesel\n1,745\nWyoming\n2. Diesel\n6,625",
+      "unit": "f013:p2",
+      "confidence": 0.97
+    }
+  }
+}

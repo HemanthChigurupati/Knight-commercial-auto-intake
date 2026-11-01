@@ -1,0 +1,105 @@
+{
+  "schema": "extract_mvr",
+  "role": "extract",
+  "model": "us.anthropic.claude-sonnet-4-6",
+  "data": {
+    "driver_name": {
+      "value": "WHITFIELD, MARCUS J",
+      "quote": "Name:  WHITFIELD, MARCUS J",
+      "unit": "f009:p4",
+      "confidence": 0.99
+    },
+    "license_number": {
+      "value": "W38215604720918",
+      "quote": "License:  W38215604720918",
+      "unit": "f009:p4",
+      "confidence": 0.99
+    },
+    "license_state": {
+      "value": "NEW JERSEY",
+      "quote": "NEW JERSEY Driver Record - K2291",
+      "unit": "f009:p4",
+      "confidence": 0.99
+    },
+    "dob": {
+      "value": "",
+      "quote": "DOB:",
+      "unit": "f009:p4",
+      "confidence": 0.95
+    },
+    "license_class": {
+      "value": "A",
+      "quote": "Class: A  COMB VEH>26,000 GVWR, TOWED UNIT>10,001 GVWR",
+      "unit": "f009:p4",
+      "confidence": 0.99
+    },
+    "license_type": {
+      "value": "COMMERCIAL",
+      "quote": "License: COMMERCIAL Issue:  Expire: 03/22/2029 Status: VALID",
+      "unit": "f009:p4",
+      "confidence": 0.99
+    },
+    "license_status": {
+      "value": "VALID",
+      "quote": "STATUS: VALID",
+      "unit": "f009:p4",
+      "confidence": 0.99
+    },
+    "license_issue_date": {
+      "value": "",
+      "quote": "Iss Date:",
+      "unit": "f009:p4",
+      "confidence": 0.95
+    },
+    "license_expiry_date": {
+      "value": "03/22/2029",
+      "quote": "Exp Date: 03/22/2029",
+      "unit": "f009:p4",
+      "confidence": 0.99
+    },
+    "first_licensed_year": {
+      "value": "",
+      "quote": "",
+      "unit": "f009:p4",
+      "confidence": 0.9
+    },
+    "cdl_first_issued": {
+      "value": "",
+      "quote": "",
+      "unit": "f009:p4",
+      "confidence": 0.85
+    },
+    "order_date": {
+      "value": "09/24/2025",
+      "quote": "Order Date: 09/24/2025",
+      "unit": "f009:p4",
+      "confidence": 0.99
+    },
+    "stale_marker": {
+      "value": "OLD MVR",
+      "quote": "MVR Report  OLD MVR",
+      "unit": "f009:p4",
+      "confidence": 0.99
+    },
+    "violations": [
+      {
+        "date": "06/07/2023",
+        "description": "SPEEDING 15-29 MPH OVER LIMIT",
+        "points": "4",
+        "quote": "VIOL 06/07/2023  S95 SA95 4-98 SPEEDING 15-29 MPH Y 79 PENNSYLVANIA  4  \n  OVER LIMIT",
+        "unit": "f009:p4",
+        "confidence": 0.97
+      }
+    ],
+    "accidents": [
+      {
+        "date": "02/11/2024",
+        "location": "NEW JERSEY",
+        "at_fault": "",
+        "quote": "ACCD 02/11/2024  -  AA01 POLC ** ACCIDENT ** N  NEW JERSEY *ACC*  -",
+        "unit": "f009:p4",
+        "confidence": 0.95
+      }
+    ]
+  }
+}
