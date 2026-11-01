@@ -165,6 +165,23 @@ class FindingKind(str, Enum):
     GAP = "gap"                            # one document mentions what another should cover
 
 
+class AgentStep(BaseModel):
+    tool: str
+    input: dict = Field(default_factory=dict)
+    result: str = ""                       # short summary of what the tool returned
+    thought: str = ""                      # the model's stated reason for the call, if any
+
+
+class AgentReview(BaseModel):
+    verdict: str                           # confirmed | resolved | corrected | needs_human | not_run
+    explanation: str = ""
+    corrected_value: str = ""              # for 'corrected': the value the evidence supports
+    corrected_source: str = ""             # which source was misread
+    confidence: float = 0.0
+    steps: list[AgentStep] = Field(default_factory=list)
+    model: str = ""
+
+
 class Finding(BaseModel):
     finding_id: str
     kind: FindingKind
@@ -175,6 +192,8 @@ class Finding(BaseModel):
     detail: str = ""
     observations: list[Observation] = Field(default_factory=list)
     needs_recheck: bool = False            # stage 4's agent should re-read the sources
+    status: str = "open"                   # open | confirmed | resolved | needs_human
+    review: AgentReview | None = None
 
 
 class Reconciliation(BaseModel):
