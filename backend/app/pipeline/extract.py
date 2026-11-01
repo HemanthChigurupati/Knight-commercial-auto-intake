@@ -15,7 +15,7 @@ import re
 
 from ..extraction.specs import DocSpec, spec_for
 from ..providers.llm import Block, LLMProvider, LLMUnavailable
-from ..schemas import ContentUnit, Extraction, Fact, LogicalDocument, Submission
+from ..schemas import ContentUnit, Extraction, Fact, FactStatus, LogicalDocument, Submission
 from .verify import _norm, finalize
 
 log = logging.getLogger("pipeline")
@@ -121,9 +121,12 @@ def extract_document(doc: LogicalDocument, units: list[ContentUnit], llm: LLMPro
     for ls in spec.lists:
         rows = []
         for item in data.get(ls.name) or []:
-            rows.append({f.name: _fact(f.name, f.kind, item.get(f.name, ""), item.get("quote", ""),
-                                       item.get("unit", ""), item.get("confidence", 0), units)
-                         for f in ls.fields})
+            row = {f.name: _fact(f.name, f.kind, item.get(f.name, ""), item.get("quote", ""),
+                                 item.get("unit", ""), item.get("confidence", 0), units)
+                   for f in ls.fields}
+            # A placeholder row ("VIN & VEHICLE ... $ -") has nothing that identifies it.
+            if sum(1 for f in row.values() if f.status != FactStatus.MISSING) >= 2:
+                rows.append(row)
         ex.records[ls.name] = rows
     return ex
 

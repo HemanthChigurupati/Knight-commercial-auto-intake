@@ -4,7 +4,8 @@ vehicle schedule text, so the test is free and gives the same result every run."
 from pathlib import Path
 
 from app.pipeline.extract import extract_document, fact_counts, tool_schema
-from app.pipeline.verify import grounding_score, parse_date, vin_checks, vin_decode
+from app.pipeline.verify import (grounding_score, is_blank, license_match, parse_date, vin_checks,
+                                 vin_decode)
 from app.extraction.specs import SPECS
 from app.providers.llm import LLMResult
 from app.schemas import ContentUnit, DocType, FactStatus, LogicalDocument, UnitKind
@@ -33,6 +34,16 @@ def test_vin_rules():
     assert vin_checks("3AKJGLD59HSKR736") == ["VIN must be 17 characters (has 16)"]
     assert "check digit" in vin_checks("4V4NC9EH8LN248615")[0]       # one character misread
     assert vin_decode("4V4NC9EH9LN248615") == {"make": "VOLVO", "model_year": 2020}
+
+
+def test_license_numbers_from_cards_and_mvrs():
+    assert license_match("V6193 02874 15503", "V61930287415503") == "exact"    # spaces on the card
+    assert license_match("07314062", "O7314062") == "lookalike"                # zero vs letter O
+    assert license_match("M5520814", "C4471925") == "different"
+
+
+def test_placeholders_count_as_blank():
+    assert is_blank("$  -") and is_blank("LIST ATTACHED") and not is_blank("Do not offer")
 
 
 def test_grounding_catches_invented_quotes():

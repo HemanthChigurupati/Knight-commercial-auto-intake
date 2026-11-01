@@ -126,6 +126,23 @@ def vin_checks(vin: str) -> list[str]:
     return problems
 
 
+def normalize_license(raw: str) -> str:
+    return re.sub(r"[\s.-]", "", raw).upper()
+
+
+def license_match(a: str, b: str) -> str:
+    """'exact', 'lookalike' (differs only by characters OCR confuses, like O/0 or I/1),
+    or 'different'. Lookalikes are the same license, read differently -- worth a recheck,
+    not a conflict."""
+    a, b = normalize_license(a), normalize_license(b)
+    if a == b:
+        return "exact"
+    fold = str.maketrans({"O": "0", "I": "1", "L": "1", "S": "5", "B": "8", "Z": "2"})
+    if len(a) == len(b) and a.translate(fold) == b.translate(fold):
+        return "lookalike"
+    return "different"
+
+
 def vin_decode(vin: str) -> dict:
     """Make and model year encoded in the VIN (used by reconciliation and the agent)."""
     return {"make": VIN_MAKES.get(vin[:3]),
@@ -134,10 +151,19 @@ def vin_decode(vin: str) -> dict:
 
 # ---------------------------------------------------------------- one fact
 
+# Spreadsheet and form placeholders that mean "nothing entered".
+BLANK_VALUES = {"-", "--", "$ -", "$-", "n/a", "na", "null", "tbd", "list attached",
+                "see attached", "attached"}
+
+
+def is_blank(raw: str) -> bool:
+    return re.sub(r"\s+", " ", raw.strip().lower()) in BLANK_VALUES or not raw.strip()
+
+
 def finalize(fact: Fact, page_text: str) -> Fact:
     """Normalize, validate and score one fact in place."""
     raw = fact.raw.strip()
-    if not raw:
+    if is_blank(raw):
         fact.status, fact.value = FactStatus.MISSING, None
         fact.confidence = round(min(fact.model_confidence, 0.99), 3)   # confidence it is absent
         return fact

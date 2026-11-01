@@ -75,6 +75,7 @@ SPECS: dict[DocType, DocSpec] = {
         "Carrier's commercial auto insurance application.",
         fields=(
             F("applicant_name", "text", "Legal business name of the applicant", "match applicant across documents"),
+            F("agency_name", "text", "Submitting agency name", "agency details must agree with the quote form"),
             F("entity_type", "text", "Corporation, LLC, sole proprietorship or partnership (whichever is marked)",
               "new-venture rules differ by entity"),
             F("fein", "text", "Federal employer ID / tax ID number", "submission requirement: FEIN/SSN"),
@@ -218,6 +219,8 @@ SPECS: dict[DocType, DocSpec] = {
             F("date_of_loss", "date", "Date of loss"),
             F("date_reported", "date", "Date reported"),
             F("driver_name", "text", "Driver involved", "unreported drivers"),
+            F("vehicle_description", "text", "Vehicle year and make as written (e.g. '2021 - PETERBILT')",
+              "vehicle details must agree with the vehicle schedule"),
             F("vehicle_vin", "vin", "Vehicle VIN involved", "unreported units"),
             F("status", "text", "Open or closed"),
             F("incurred", "money", "Claim total incurred"),

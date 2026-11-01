@@ -54,9 +54,12 @@ class LLMProvider(Protocol):
                       schema_name: str, schema: dict, max_tokens: int = 2000) -> LLMResult: ...
 
 
-def cache_key(role: str, system: str, blocks: list[Block], schema_name: str) -> str:
+def cache_key(role: str, system: str, blocks: list[Block], schema_name: str,
+              schema: dict | None = None) -> str:
+    """Same inputs -> same key. The schema is part of the key, so adding a field to an
+    extraction spec makes old recordings stop matching instead of replaying stale answers."""
     h = hashlib.sha256()
-    for part in (role, system, schema_name):
+    for part in (role, system, schema_name, json.dumps(schema or {}, sort_keys=True)):
         h.update(part.encode())
         h.update(b"\x00")
     for b in blocks:
@@ -146,7 +149,7 @@ class ReplayLLM:
         self.cache_dir = cache_dir
 
     def complete_json(self, role, system, blocks, schema_name, schema, max_tokens=2000):
-        path = self.cache_dir / f"{cache_key(role, system, blocks, schema_name)}.json"
+        path = self.cache_dir / f"{cache_key(role, system, blocks, schema_name, schema)}.json"
         if not path.exists():
             raise LLMUnavailable(f"no recorded response for this {schema_name} call")
         rec = json.loads(path.read_text())
@@ -164,7 +167,7 @@ class RecordingLLM:
 
     def complete_json(self, role, system, blocks, schema_name, schema, max_tokens=2000):
         res = self.inner.complete_json(role, system, blocks, schema_name, schema, max_tokens)
-        key = cache_key(role, system, blocks, schema_name)
+        key = cache_key(role, system, blocks, schema_name, schema)
         (self.cache_dir / f"{key}.json").write_text(json.dumps(
             {"schema": schema_name, "role": role, "model": res.model, "data": res.data}, indent=2))
         return res

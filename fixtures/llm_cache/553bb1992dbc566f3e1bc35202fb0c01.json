@@ -1,9 +1,0 @@
-{
-  "schema": "transcription",
-  "role": "classify",
-  "model": "us.anthropic.claude-haiku-4-5-20251001-v1:0",
-  "data": {
-    "text": "NEW JERSEY\nCOMMERCIAL DRIVER LICENSE\n\nDL V6193 02874 15503\nDOB 06-02-1983\nISS 05-28-2022\nEXP 06-02-2026\n\nCLASS A\n\nVOLKOV\nALEKSANDR PAVEL\n17 BIRCHWOOD TER APT 2C\nEDISON, NJ 08817\n\nEND NONE\nRESTR NONE\n\nSEX M  HGT 6'-01\"  EYES BLU",
-    "legibility": 0.92
-  }
-}
