@@ -22,6 +22,22 @@ export function Cite({ id }) {
   );
 }
 
+// License numbers, VINs, claim and policy numbers in a face where 0 and O differ.
+const ID_TOKEN = /\b(?=[A-Z0-9]*\d)[A-Z0-9]{7,}\b/g;
+export function Ids({ text }) {
+  if (text === null || text === undefined) return null;
+  const str = String(text);
+  const out = [];
+  let last = 0;
+  for (const m of str.matchAll(ID_TOKEN)) {
+    if (m.index > last) out.push(str.slice(last, m.index));
+    out.push(<span key={m.index} className="id">{m[0]}</span>);
+    last = m.index + m[0].length;
+  }
+  out.push(str.slice(last));
+  return <>{out}</>;
+}
+
 export function Severity({ level }) {
   return <span className={`sev sev-${level}`}>{level}</span>;
 }
@@ -35,7 +51,7 @@ export function Source({ obs, showValue = true }) {
   const { open } = useSub();
   return (
     <div className="source">
-      {showValue && <div className="source-value">{fmtValue(obs.value)}</div>}
+      {showValue && <div className="source-value"><Ids text={fmtValue(obs.value)} /></div>}
       <div className="source-where">
         {obs.doc_id ? (
           <button type="button" className="linkish" onClick={() => open({ ref: obs.doc_id })}>{obs.source}</button>
@@ -48,7 +64,7 @@ export function Source({ obs, showValue = true }) {
           </button>
         )}
       </div>
-      {obs.quote && <blockquote className="quote">{obs.quote}</blockquote>}
+      {obs.quote && <blockquote className="quote"><Ids text={obs.quote} /></blockquote>}
     </div>
   );
 }
@@ -112,10 +128,10 @@ function FindingView({ f }) {
   return (
     <article>
       <p className="kicker">{f.finding_id} <Severity level={f.severity} /> {KINDS[f.kind]}</p>
-      <h2>{f.title}</h2>
+      <h2><Ids text={f.title} /></h2>
       <p className="status-line">Status: <strong>{STATUS[f.status] || f.status}</strong>
         {f.human && <> after your review</>}</p>
-      {f.detail && <p>{f.detail}</p>}
+      {f.detail && <p><Ids text={f.detail} /></p>}
 
       {f.observations.length > 0 && (
         <section>
@@ -130,9 +146,9 @@ function FindingView({ f }) {
           <ol className="trace">
             {r.steps.filter((s) => s.tool !== "record_verdict").map((s, i) => <TraceStep key={i} step={s} />)}
           </ol>
-          <p>{r.explanation}</p>
+          <p><Ids text={r.explanation} /></p>
           {r.corrected_value && (
-            <p className="callout">Correct value: <strong>{r.corrected_value}</strong> (from {r.corrected_source})</p>
+            <p className="callout">Correct value: <strong className="id">{r.corrected_value}</strong> (from {r.corrected_source})</p>
           )}
         </section>
       )}

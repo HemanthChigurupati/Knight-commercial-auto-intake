@@ -44,6 +44,9 @@ button { font: inherit; color: inherit; }
 :focus-visible { outline: 3px solid var(--lane); outline-offset: 2px; }
 .muted { color: var(--ink-2); }
 .small { font-size: .875rem; }
+/* identifiers: Consolas/Menlo with a slashed or dotted zero, so O and 0 never look alike */
+.id, .page-text, .grid td, .facts td { font-feature-settings: "zero" 1; }
+.id { font-family: ui-monospace, Consolas, "SF Mono", Menlo, monospace; font-size: .92em; letter-spacing: .01em; }
 code { font-family: ui-monospace, "SF Mono", Consolas, monospace; font-size: .8125rem; }
 
 /* ---------------------------------------------------------------- top bar */
@@ -77,6 +80,7 @@ code { font-family: ui-monospace, "SF Mono", Consolas, monospace; font-size: .81
 /* ---------------------------------------------------------------- panels and notices */
 .panel { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 1.25rem; }
 .panel + .panel { margin-top: 1rem; }
+.queue-layout > .panel { margin-top: 0; }
 .panel section + section { margin-top: 1.5rem; }
 .intro { color: var(--ink-2); max-width: 75ch; }
 .notice { background: #fff6dc; border-left: 4px solid var(--amber); padding: .5rem .75rem; }

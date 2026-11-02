@@ -1,7 +1,7 @@
 // One submission: the decision first, then the evidence behind it.
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { api } from "./api.js";
-import { Cite, Drawer, Severity, SubCtx, useSub } from "./Evidence.jsx";
+import { Cite, Drawer, Ids, Severity, SubCtx, useSub } from "./Evidence.jsx";
 import {
   DOC_TYPES, KINDS, OUTCOMES, OWNERS, ROUTES, RULE_STATUS, STATUS, VERDICTS,
   fmtTime, needsAttention, pct,
@@ -251,7 +251,7 @@ function FindingRow({ f }) {
       <button type="button" className={`row row-${f.severity}`} onClick={() => open({ ref: f.finding_id })}>
         <span className="row-id">{f.finding_id}</span>
         <span className="row-main">
-          <span className="row-title">{f.title}</span>
+          <span className="row-title"><Ids text={f.title} /></span>
           <span className="row-meta">
             {KINDS[f.kind]}
             {f.review && f.review.verdict !== "not_run" && <span className="tag">{VERDICTS[f.review.verdict]}</span>}
