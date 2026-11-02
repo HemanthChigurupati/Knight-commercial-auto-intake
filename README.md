@@ -98,6 +98,32 @@ flowchart LR
 CI (`.github/workflows/ci.yml`) runs the test suite on every push and, on `main`, builds the image and
 pushes it to ECR.
 
+## Security and privacy
+
+Submissions carry personal data: FEIN or SSN (owner-operators often use their SSN), driver names,
+dates of birth and license numbers, MVRs (covered by the Driver's Privacy Protection Act) and claims
+history. Everything in this repository and the demo is fictitious.
+
+**In the prototype:** live runs use Amazon Bedrock, so documents stay in the AWS account and US
+region and are not used to train models; the hosted demo holds no AWS permissions to call models;
+IAM users are least-privilege (Bedrock/Textract for live runs, ECR push only for CI); keys live in
+GitHub secrets and local AWS profiles, never in code; the analysis brief contains no FEINs or license
+numbers.
+
+**For production:**
+
+- **Minimize what the model sees.** Mask FEIN, SSN, dates of birth and license numbers before text
+  reaches the model (pattern matching or Amazon Comprehend PII detection), keep real values in an
+  encrypted store, and match them in code. Rule C1 only needs to know a FEIN is present.
+- **Amazon Bedrock Guardrails** with sensitive-information filters on inputs and outputs.
+- **No copies left behind.** Recording off (`RECORD_LLM=false`), Bedrock invocation logging off or
+  encrypted, PII masked in CloudWatch logs and in the agent's audit trail.
+- **Encryption and retention.** S3 and the database encrypted with KMS keys; documents deleted a set
+  time after the decision.
+- **Private network paths.** VPC endpoints for Bedrock, Textract and S3.
+- **Access and audit.** SSO sign-in, role-based access, CloudTrail, and a check that each MVR use is a
+  DPPA permissible purpose.
+
 ## Modes
 
 | Mode | AI | OCR | Needs |
