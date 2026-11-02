@@ -418,8 +418,10 @@ def prior_insurance(fx: Facts, p: dict, s: dict) -> Check:
     short = continuous_since > window_start
     ev = [o for t in fx.terms for o in fx.obs(t, "period_start") if o.source.startswith("Quote form")]
     if lapses or short:
-        parts = lapses + ([f"continuous coverage only since {continuous_since}, short of {p['years']} "
-                           f"years before the {fx.anchor_name} ({window_start})"] if short else [])
+        anchor_label = fx.anchor_name.replace("_", " ")
+        parts = lapses + ([f"continuous coverage only since {continuous_since}; {p['years']} years are "
+                           f"needed (since {window_start}, counting back from the {anchor_label} "
+                           f"{fx.anchor})"] if short else [])
         msg = "; ".join(parts)
         return fail(msg[0].upper() + msg[1:] + ". Must be explained before quoting.", ev)
     return ok(f"Continuous coverage for {p['years']}+ years with no lapse over {p['max_lapse_days']} days.", ev)
