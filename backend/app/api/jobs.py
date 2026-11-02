@@ -7,9 +7,10 @@ Progress and failures are written to status.json, so they survive a page reload.
 from __future__ import annotations
 
 import logging
+import queue
 import shutil
+import threading
 import uuid
-from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
 from ..config import Settings
@@ -29,8 +30,15 @@ class Jobs:
     def __init__(self, store: Store, settings: Settings):
         self.store = store
         self.settings = settings
-        self.pool = ThreadPoolExecutor(max_workers=1, thread_name_prefix="pipeline")
+        self.queue: queue.Queue = queue.Queue()
         self.pending = 0
+        # A daemon thread, so stopping the server (Ctrl+C) never waits for a running job.
+        threading.Thread(target=self._worker, name="pipeline", daemon=True).start()
+
+    def _worker(self) -> None:
+        while True:
+            sid, inputs = self.queue.get()
+            self._run(sid, inputs)
 
     def submit(self, inputs: list[Path], name: str, sid: str | None = None) -> str:
         if self.pending >= MAX_QUEUED:
@@ -39,7 +47,7 @@ class Jobs:
         self.store.set_status(sid, state="queued", name=name, received_at=now(), mode=self.settings.mode,
                               step=0, step_label="waiting to start", error=None)
         self.pending += 1
-        self.pool.submit(self._run, sid, inputs)
+        self.queue.put((sid, inputs))
         return sid
 
     def _run(self, sid: str, inputs: list[Path]) -> None:
