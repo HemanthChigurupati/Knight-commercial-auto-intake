@@ -5,7 +5,7 @@ document by content, extract and reconcile the data, re-check conflicts with an 
 apply Knight's underwriting guideline as deterministic rules, and present one consolidated
 view to the underwriter.
 
-> Pipeline complete: classification, extraction, reconciliation, agent recheck, rules and AI analysis are built and tested. Web app in progress.
+> Pipeline and review web app complete. The hosted demo replays a recorded live Amazon Bedrock run, so it costs nothing to explore.
 
 ## Pipeline
 
@@ -32,7 +32,12 @@ view to the underwriter.
     results (never the raw PDFs) writes the summary, concerns and next actions. Every item must cite
     rule / finding / document ids; a code check strips unknown ids and drops uncited items. The
     rules-engine decision is fixed and never taken from the model.
-11. Review UI *(in progress)*
+11. **Review web app** (`app/api/` + `frontend/`): FastAPI serving a React app. Review queue, upload,
+    background processing with step-by-step progress, and one page per submission: the decision,
+    the AI analysis with clickable citations, findings with the agent's tool trace, all rules, every
+    document with its extracted facts, and the audit trail. Any citation, fact or finding opens the
+    source page with the quoted text highlighted. The underwriter can confirm or resolve a finding
+    with a note; the rules re-run at once and the analysis is marked as written before the review.
 
 `tests/test_reconcile.py` holds the **expected-findings test**: it replays the recorded Bedrock
 run in `fixtures/` and checks that every issue an underwriter would find by hand is reported.
@@ -51,14 +56,29 @@ Every live (`aws` / `local`) run saves each Claude response to `fixtures/llm_cac
 OCR result to `fixtures/ocr_cache/` (keyed by source-file hash + page). Commit those folders
 and `demo` mode replays that run exactly, with no credentials and no cost.
 
-## Run stage 1
+## Run it
 
 ```bash
 cd backend
-pip install -r requirements.txt        # plus the tesseract binary for demo mode
-cp ../.env.example ../.env
+pip install -r requirements.txt        # plus the tesseract binary for new uploads in demo mode
+uvicorn app.api.main:app --port 8000   # open http://localhost:8000
+```
+
+The server processes the Cobalt Mesa sample on first start (about 15 seconds in demo mode).
+Pipeline only, from the command line:
+
+```bash
 python -m app.pipeline.run "../samples/cobalt-mesa/Sample Submission - Cobalt Mesa Transport.zip"
 pytest -q
 ```
+
+Or as one container: `docker build -t knight-intake . && docker run -p 8000:8000 knight-intake`.
+
+**Live mode on a server.** Set `APP_MODE=aws` and `ACCESS_CODE=<something>`: every upload, rerun and
+review then needs the code (sent as the `X-Access-Code` header; the page asks for it). Uploads are
+limited to 25 MB and jobs run one at a time.
+
+**Frontend.** The React source is in `frontend/src`; the built bundle in `frontend/dist` is committed
+so the server needs only Python. After changing the source: `cd frontend && npm install && npm run build`.
 
 All companies, people and records in `samples/` are fictitious (provided with the case study).

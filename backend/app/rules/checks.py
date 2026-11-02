@@ -439,12 +439,15 @@ def losses_for_every_term(fx: Facts, p: dict, s: dict) -> Check:
 
 def open_conflicts(fx: Facts, p: dict, s: dict) -> Check:
     open_ = [f for f in fx.open_findings(FindingKind.CONFLICT) if f.severity in p["severities"]]
-    resolved = [f for f in fx.findings if f.status == "resolved"]
+    resolved = [f for f in fx.findings if f.status == "resolved" and not f.human]
+    by_review = [f for f in fx.findings if f.status == "resolved" and f.human]
+    note = (f". {len(resolved)} resolved by the agent recheck not counted." if resolved else "") + \
+           (f" {len(by_review)} resolved by underwriter review not counted." if by_review else "")
     if open_:
         return fail(f"{len(open_)} unresolved conflicts: " + "; ".join(
-            f"{f.finding_id} {f.title}" + (" (agent confirmed)" if f.status == "confirmed" else "")
-            for f in open_) + (f". {len(resolved)} resolved by the agent recheck not counted." if resolved else ""),
-            fids=[f.finding_id for f in open_])
+            f"{f.finding_id} {f.title}" + (" (confirmed by underwriter)" if f.human and f.status == "confirmed"
+                                           else " (agent confirmed)" if f.status == "confirmed" else "")
+            for f in open_) + note, fids=[f.finding_id for f in open_])
     return ok("No unresolved high or medium conflicts.")
 
 

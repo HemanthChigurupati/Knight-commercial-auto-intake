@@ -184,6 +184,15 @@ class AgentReview(BaseModel):
     model: str = ""
 
 
+class HumanReview(BaseModel):
+    """An underwriter's decision on a finding, recorded in the review UI."""
+    action: str                            # confirm | resolve | reopen
+    note: str = ""
+    reviewer: str = ""
+    at: str = ""                           # ISO timestamp
+    previous_status: str = ""
+
+
 class Finding(BaseModel):
     finding_id: str
     kind: FindingKind
@@ -196,6 +205,8 @@ class Finding(BaseModel):
     needs_recheck: bool = False            # stage 4's agent should re-read the sources
     status: str = "open"                   # open | confirmed | resolved | needs_human
     review: AgentReview | None = None
+    human: HumanReview | None = None       # the underwriter's latest decision, if any
+    history: list[HumanReview] = Field(default_factory=list)
 
 
 class Reconciliation(BaseModel):
@@ -250,6 +261,7 @@ class Analysis(BaseModel):
     recommendations: list[Recommendation] = Field(default_factory=list)
     warnings: list[str] = Field(default_factory=list)  # citation problems found by the check
     model: str = ""
+    stale: bool = False                    # findings were reviewed after this analysis was written
 
 
 Entity.model_rebuild()

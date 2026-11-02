@@ -12,6 +12,7 @@ import time
 import uuid
 from datetime import datetime, timezone
 from pathlib import Path
+from typing import Callable
 
 from ..config import Settings, get_settings
 from ..providers.llm import build_llm
@@ -35,7 +36,9 @@ def _event(sub: Submission, step: str, t0: float, **detail) -> None:
 
 
 def process(inputs: list[Path], settings: Settings | None = None,
-            submission_id: str | None = None) -> Submission:
+            submission_id: str | None = None,
+            progress: Callable[[int, str], None] | None = None) -> Submission:
+    """Run every step. `progress(step_number, label)` is called as each step starts."""
     s = settings or get_settings()
     sub = Submission(submission_id=submission_id or uuid.uuid4().hex[:12],
                      received_name=", ".join(p.name for p in inputs))
@@ -44,31 +47,36 @@ def process(inputs: list[Path], settings: Settings | None = None,
     ocr = build_ocr(s, llm)
     log.info("mode=%s  llm=%s  ocr=%s", s.mode, llm.name, ocr.name)
 
-    log.info("[1/9] intake")
+    def step(n: int, label: str) -> None:
+        log.info("[%d/9] %s", n, label)
+        if progress:
+            progress(n, label)
+
+    step(1, "intake")
     t0 = time.time()
     sub.files = ingest(inputs, work)
     _event(sub, "intake", t0, files=len(sub.files),
            duplicates=sum(1 for f in sub.files if f.duplicate_of))
 
-    log.info("[2/9] preprocess: splitting files into pages/sheets/images")
+    step(2, "preprocess: splitting files into pages/sheets/images")
     t0 = time.time()
     sub.units = build_units(sub.files, work, s)
     _event(sub, "preprocess", t0, units=len(sub.units),
            needs_ocr=sum(1 for u in sub.units if u.image_path and not u.text))
 
-    log.info("[3/9] ocr")
+    step(3, "ocr")
     t0 = time.time()
     run_ocr(sub.units, ocr, sub.files)
     _event(sub, "ocr", t0, engines=sorted({u.text_source for u in sub.units}))
 
-    log.info("[4/9] classify + group")
+    step(4, "classify + group")
     t0 = time.time()
     sub.classified, subjects = classify_units(sub.units, llm)
     sub.documents = group_documents(sub.classified, subjects, sub.files)
     _event(sub, "classify", t0, llm=llm.name, documents=len(sub.documents),
            needs_review=sum(1 for c in sub.classified if c.classification.needs_review))
 
-    log.info("[5/9] extract facts")
+    step(5, "extract facts")
     t0 = time.time()
     sub.extractions = extract_documents(sub, llm)
     totals = {"found": 0, "missing": 0, "invalid": 0, "unverified": 0}
@@ -79,7 +87,7 @@ def process(inputs: list[Path], settings: Settings | None = None,
            documents={st: sum(1 for e in sub.extractions if e.status == st)
                       for st in ("ok", "not_run", "skipped", "error")}, facts=totals)
 
-    log.info("[6/9] reconcile across documents")
+    step(6, "reconcile across documents")
     t0 = time.time()
     sub.reconciliation = reconcile(sub)
     rec = sub.reconciliation
@@ -88,7 +96,7 @@ def process(inputs: list[Path], settings: Settings | None = None,
                      for k in ("conflict", "gap", "possible_misread", "outdated_document", "superseded")},
            needs_recheck=sum(1 for f in rec.findings if f.needs_recheck))
 
-    log.info("[7/9] agent recheck of flagged findings")
+    step(7, "agent recheck of flagged findings")
     t0 = time.time()
     recheck_findings(sub, llm, work, s.render_dpi)
     reviewed = [f for f in rec.findings if f.review]
@@ -97,7 +105,7 @@ def process(inputs: list[Path], settings: Settings | None = None,
                      for v in ("confirmed", "resolved", "corrected", "needs_human", "not_run")},
            tool_calls=sum(len(f.review.steps) for f in reviewed))
 
-    log.info("[8/9] apply underwriting rules")
+    step(8, "apply underwriting rules")
     t0 = time.time()
     sub.decision = evaluate(sub)
     d = sub.decision
@@ -105,7 +113,7 @@ def process(inputs: list[Path], settings: Settings | None = None,
            rules_version=d.rules_version,
            results={k: sum(1 for r in d.results if r.status == k) for k in ("pass", "fail", "unknown", "info")})
 
-    log.info("[9/9] AI analysis")
+    step(9, "AI analysis")
     t0 = time.time()
     sub.analysis = analyze(sub, llm)
     _event(sub, "analysis", t0, llm=llm.name, status=sub.analysis.status,
