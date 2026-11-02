@@ -61,19 +61,19 @@
       "value": "$0.00",
       "quote": "TOTAL LOSSES PAID  No Coverage  No Coverage  $0.00",
       "unit": "f008:p1",
-      "confidence": 0.97
+      "confidence": 0.99
     },
     "total_reserved": {
       "value": "$0.00",
       "quote": "TOTAL RESERVED  No Coverage  No Coverage  $0.00",
       "unit": "f008:p1",
-      "confidence": 0.97
+      "confidence": 0.99
     },
     "total_incurred": {
       "value": "$0.00",
       "quote": "TOTAL INCURRED  No Coverage  No Coverage  $0.00",
       "unit": "f008:p1",
-      "confidence": 0.97
+      "confidence": 0.99
     },
     "claims": []
   }

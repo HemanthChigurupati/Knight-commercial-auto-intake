@@ -6,6 +6,6 @@
     "doc_type": "mvr",
     "confidence": 0.99,
     "subject": "SANDHU, DEVRAJ",
-    "reason": "California driver motor vehicle record from RoadLedger showing license number C4291, violations/convictions marked as \"NONE TO REPORT,\" and license status information for a single driver."
+    "reason": "California driver record from RoadLedger MVR vendor showing license number C4291, DOB, violations/accidents/suspensions status, and license validity for a single driver."
   }
 }

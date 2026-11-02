@@ -87,7 +87,7 @@
         "incurred": "$7,454.00",
         "late_reported": "Y",
         "unreported_driver_or_unit": "Unreported Unit:Y",
-        "quote": "Claim Number:GA1093318 Claim Status:Closed Name of Driver:KEVIN BRANDT Date of Birth:11/02/1976 Driver Status:Unreported Date of Hire:N/A\n  Vehicle Info :2021 - PETERBILT - Accident Location:SAN JOAQUIN\n  1 Date of Loss:06/21/2025 Date Reported: 07/18/2025 Late Reported Claim:Y 1XPBD49X5MD735204 Unreported Unit:Y COUNTY , CA",
+        "quote": "Claim Number:GA1093318 Claim Status:Closed Name of Driver:KEVIN BRANDT Date of Birth:11/02/1976 Driver Status:Unreported Date of Hire:N/A Vehicle Info :2021 - PETERBILT - Accident Location:SAN JOAQUIN 1 Date of Loss:06/21/2025 Date Reported: 07/18/2025 Late Reported Claim:Y 1XPBD49X5MD735204 Unreported Unit:Y COUNTY , CA",
         "unit": "f001:p1",
         "confidence": 0.98
       },
@@ -102,7 +102,7 @@
         "incurred": "$70,005.00",
         "late_reported": "Y",
         "unreported_driver_or_unit": "Unreported Unit:N",
-        "quote": "Claim Number:GA1092764 Claim Status:Open Name of Driver:ALEKSANDR P VOLKOV Date of Birth:06/02/1983 Driver Status:Reported Date of Hire:09/03/2024\n  Vehicle Info :2020 - FREIGHTLINER - Accident Location:PINAL CO , AZ\n  2 Date of Loss:03/09/2025 Date Reported: 03/31/2025 Late Reported Claim:Y 4V4NC9EH9LN248615 Unreported Unit:N",
+        "quote": "Claim Number:GA1092764 Claim Status:Open Name of Driver:ALEKSANDR P VOLKOV Date of Birth:06/02/1983 Driver Status:Reported Date of Hire:09/03/2024 Vehicle Info :2020 - FREIGHTLINER - Accident Location:PINAL CO , AZ 2 Date of Loss:03/09/2025 Date Reported: 03/31/2025 Late Reported Claim:Y 4V4NC9EH9LN248615 Unreported Unit:N",
         "unit": "f001:p1",
         "confidence": 0.98
       }

@@ -22,10 +22,10 @@
       "confidence": 0.99
     },
     "coverage": {
-      "value": "CARGO",
+      "value": "AUTO LIABILITY, PHYSICAL DAMAGE, CARGO",
       "quote": "COVERAGE  AUTO LIABLITY  PHYSICAL DAMAGE  CARGO",
       "unit": "f007:p1",
-      "confidence": 0.85
+      "confidence": 0.97
     },
     "period_start": {
       "value": "12/16/2024",
@@ -61,19 +61,19 @@
       "value": "$0.00",
       "quote": "TOTAL LOSSES PAID  No Coverage  No Coverage  $0.00",
       "unit": "f007:p1",
-      "confidence": 0.99
+      "confidence": 0.97
     },
     "total_reserved": {
       "value": "$0.00",
       "quote": "TOTAL RESERVED  No Coverage  No Coverage  $0.00",
       "unit": "f007:p1",
-      "confidence": 0.99
+      "confidence": 0.97
     },
     "total_incurred": {
       "value": "$0.00",
       "quote": "TOTAL INCURRED  No Coverage  No Coverage  $0.00",
       "unit": "f007:p1",
-      "confidence": 0.99
+      "confidence": 0.97
     },
     "claims": []
   }

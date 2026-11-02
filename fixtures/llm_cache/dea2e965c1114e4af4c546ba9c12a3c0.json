@@ -78,8 +78,8 @@
     "stale_marker": {
       "value": "",
       "quote": "",
-      "unit": "",
-      "confidence": 0.99
+      "unit": "f009:p5",
+      "confidence": 0.97
     },
     "violations": [],
     "accidents": []

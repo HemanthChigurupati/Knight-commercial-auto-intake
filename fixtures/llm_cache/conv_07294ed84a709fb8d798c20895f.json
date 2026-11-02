@@ -10,18 +10,18 @@
       },
       {
         "type": "tool_use",
-        "id": "tooluse_XFiw9CsODwPjHY1RbAH5XQ",
+        "id": "tooluse_JCrumlt2Tx32iGz9xGAFGq",
         "name": "read_source_text",
         "input": {
-          "unit_id": "f009:p9"
+          "unit_id": "f009:p10"
         }
       },
       {
         "type": "tool_use",
-        "id": "tooluse_IKf7eqsrSRNuUMk8iuTJRv",
-        "name": "view_source_image",
+        "id": "tooluse_DPzOM74Ez2KEFEEbyF3Ejl",
+        "name": "read_source_text",
         "input": {
-          "unit_id": "f009:p10"
+          "unit_id": "f009:p9"
         }
       }
     ],

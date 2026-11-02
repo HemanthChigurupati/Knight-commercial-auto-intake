@@ -25,7 +25,7 @@
       "value": "AUTO LIABILITY",
       "quote": "COVERAGE  AUTO LIABLITY  PHYSICAL DAMAGE  CARGO",
       "unit": "f000:p1",
-      "confidence": 0.95
+      "confidence": 0.97
     },
     "period_start": {
       "value": "12/15/2023",
@@ -43,7 +43,7 @@
       "value": "10/06/2026",
       "quote": "Run Date: 10/06/2026",
       "unit": "f000:p1",
-      "confidence": 0.97
+      "confidence": 0.99
     },
     "total_claims": {
       "value": "0",
@@ -52,10 +52,10 @@
       "confidence": 0.99
     },
     "open_claims": {
-      "value": "0",
+      "value": "",
       "quote": "OPEN CLAIMS:",
       "unit": "f000:p1",
-      "confidence": 0.95
+      "confidence": 0.85
     },
     "total_paid": {
       "value": "$0.00",

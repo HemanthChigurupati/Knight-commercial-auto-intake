@@ -1,0 +1,38 @@
+{
+  "schema": "agent_turn",
+  "role": "agent",
+  "model": "us.anthropic.claude-sonnet-4-6",
+  "data": {
+    "content": [
+      {
+        "type": "text",
+        "text": "I'll check both source documents and decode the VIN simultaneously to verify the make."
+      },
+      {
+        "type": "tool_use",
+        "id": "tooluse_yMnI3jWu4yQ8dus4jT7Ufw",
+        "name": "read_source_text",
+        "input": {
+          "unit_id": "f001:p1"
+        }
+      },
+      {
+        "type": "tool_use",
+        "id": "tooluse_3VonBgPPV81G8HsLK2Me62",
+        "name": "read_source_text",
+        "input": {
+          "unit_id": "f014:s1"
+        }
+      },
+      {
+        "type": "tool_use",
+        "id": "tooluse_AN1ROhXgsZyWIKE1PNZiEH",
+        "name": "decode_vin",
+        "input": {
+          "vin": "4V4NC9EH9LN248615"
+        }
+      }
+    ],
+    "stop_reason": "tool_use"
+  }
+}

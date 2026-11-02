@@ -1,0 +1,22 @@
+{
+  "schema": "agent_turn",
+  "role": "agent",
+  "model": "us.anthropic.claude-sonnet-4-6",
+  "data": {
+    "content": [
+      {
+        "type": "text",
+        "text": "The vehicle schedule (f003:s2) appears sparse. Let me also check the dedicated vehicle list spreadsheet and the quote form's vehicle section more carefully."
+      },
+      {
+        "type": "tool_use",
+        "id": "tooluse_6pw3GwVygkf7yOs7FhNitJ",
+        "name": "read_source_text",
+        "input": {
+          "unit_id": "f014:s1"
+        }
+      }
+    ],
+    "stop_reason": "tool_use"
+  }
+}

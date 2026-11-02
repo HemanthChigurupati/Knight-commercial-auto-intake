@@ -1,0 +1,281 @@
+{
+  "schema": "underwriting_analysis",
+  "role": "analysis",
+  "model": "us.anthropic.claude-sonnet-4-6",
+  "data": {
+    "summary": "Cobalt Mesa Transport Inc. is a 5-year-old California-domiciled trucking corporation (DOT 9481307) operating a small fleet of 4 power units (vehicle schedule) out of Lathrop, CA, submitted through Bayline Insurance Agency Inc. The rules engine has issued a REFER routed to the small_fleet team, driven by multiple hard fails: unsigned/incomplete application, missing loss run for a prior term, a 308-day coverage lapse, an invalid VIN, a non-CDL driver on the schedule, and unresolved cross-document conflicts. The most pressing substantive risks are a large open liability claim ($70,005 incurred, still open) tied to a vehicle whose make is misreported in the loss run, an unscheduled driver and vehicle appearing in loss history, and a coverage lapse that must be explained before quoting. Data integrity is poor across the submission \u2014 entity name, unit count, operating radius, and carrier identity all conflict between documents.",
+    "concerns": [
+      {
+        "title": "Large Open Liability Claim with Late Reporting and Vehicle Make Discrepancy",
+        "detail": "Claim GA1092764 (loss 2025-03-09) is open with $70,005 incurred ($52,500 still reserved) and was reported late (27 days after loss). The loss run misidentifies the vehicle as a 2020 Freightliner when the VIN decodes to a 2020 Volvo \u2014 a data quality error that raises questions about the accuracy of the entire loss run. The combination of a large open reserve, late reporting, and a vehicle make error warrants close scrutiny of claim status and potential legal exposure.",
+        "severity": "high",
+        "cites": [
+          "d02",
+          "F04",
+          "C5"
+        ]
+      },
+      {
+        "title": "Unscheduled Driver and Vehicle in Loss History",
+        "detail": "Driver Kevin Brandt (claim GA1093318, $7,454 incurred) and vehicle 2021 Peterbilt (1XPBD49X5MD735204) appear in the loss history but are on neither the driver schedule nor the vehicle schedule. This suggests the fleet may be larger or differently composed than represented, and that at least one driver operating under this authority has no MVR on file.",
+        "severity": "high",
+        "cites": [
+          "F05",
+          "F06",
+          "d02",
+          "D1",
+          "F2"
+        ]
+      },
+      {
+        "title": "308-Day Coverage Lapse and Missing Loss Run for Prior Term",
+        "detail": "There is a 308-day gap in coverage from 2023-02-10 to 2023-12-15, far exceeding the 30-day threshold. Additionally, no loss run has been provided for the policy term 2022-03-08 to 2023-02-10, which is listed on the quote form. Both issues must be resolved before quoting; the lapse must be explained and the missing loss run obtained.",
+        "severity": "high",
+        "cites": [
+          "E5",
+          "E6",
+          "F07",
+          "d05"
+        ]
+      },
+      {
+        "title": "Non-CDL Owner-Driver and Unverifiable CDL Experience for Scheduled Driver",
+        "detail": "Devraj Sandhu holds only a non-commercial Class C license and cannot legally operate commercial vehicles, yet is listed as a driver on the schedule. Separately, the application states the owner does not drive, directly contradicting Sandhu's 'OWNER' hire-date designation on the driver schedule \u2014 this conflict must be resolved. Additionally, CDL experience for Marcus J. Whitfield cannot be verified (no CDL issue date on MVR), and Whitfield carries a serious speeding violation (15-29 mph over, 4 pts, 2023).",
+        "severity": "high",
+        "cites": [
+          "D1",
+          "F10",
+          "D2",
+          "d06",
+          "d04",
+          "d10",
+          "d11"
+        ]
+      },
+      {
+        "title": "Incomplete and Unsigned Application; Missing FEIN",
+        "detail": "The application is unsigned and undated, and no FEIN/SSN is provided. These are hard submission requirements and prevent quoting.",
+        "severity": "high",
+        "cites": [
+          "C1",
+          "C3",
+          "d04"
+        ]
+      },
+      {
+        "title": "Entity Name Discrepancy (INC vs. LLC) and Q4 2025 IFTA Filing",
+        "detail": "The Q4 2025 IFTA return names the taxpayer as 'COBALT MESA TRANSPORT LLC,' while all other documents (10 of 11) use 'COBALT MESA TRANSPORT INC.' This is a confirmed, unresolved conflict. The correct legal entity must be established before binding, as it affects policy issuance, DOT authority, and coverage validity.",
+        "severity": "high",
+        "cites": [
+          "F01",
+          "d21",
+          "d04",
+          "d05"
+        ]
+      },
+      {
+        "title": "Invalid VIN on Vehicle Schedule",
+        "detail": "The 2017 Freightliner (VIN 3AKJGLD59HSKR736) has only 16 characters; a valid VIN requires 17. This must be corrected before a policy can be issued.",
+        "severity": "medium",
+        "cites": [
+          "C8",
+          "d22"
+        ]
+      },
+      {
+        "title": "Conflicting Operating Radius Across Documents",
+        "detail": "The application and quote form describe materially different operating radius distributions \u2014 the application shows 40% of miles over 500 miles nationally, while the quote form shows 50% as 48-state. This affects classification, rating territory, and non-listed-states exposure, and must be reconciled.",
+        "severity": "medium",
+        "cites": [
+          "F09",
+          "d04",
+          "d05",
+          "B2"
+        ]
+      },
+      {
+        "title": "Carrier Identity Conflict for 2023-12-15 to 2024-12-15 Term",
+        "detail": "The quote form and one loss run identify the carrier for this term as Granite Peak Specialty, while the no-loss letter is from Midwest Freight Owners Association Inc. It is unclear whether these represent separate coverages (e.g., liability vs. cargo) or a data error. The no-loss letter covers only 'no paid losses' and does not address open or reserved claims, which is a weaker form of loss documentation.",
+        "severity": "medium",
+        "cites": [
+          "F11",
+          "F14",
+          "d01",
+          "d07",
+          "d05"
+        ]
+      },
+      {
+        "title": "IFTA Penalty and Late Filing (Q1 2026)",
+        "detail": "The Q1 2026 IFTA return shows a penalty of $346.42 and interest of $134.80, indicating a late or deficient filing. The other three quarters show no penalties. This is a minor but notable compliance signal for a 5-year-old operation.",
+        "severity": "low",
+        "cites": [
+          "d18"
+        ]
+      },
+      {
+        "title": "Unit Count Discrepancy (4 vs. 5 Power Units)",
+        "detail": "The vehicle schedule lists 4 power units; the quote form's current policy row states 5. Combined with the unscheduled 2021 Peterbilt appearing in loss history, the true fleet size is uncertain.",
+        "severity": "low",
+        "cites": [
+          "F02",
+          "F06",
+          "d22",
+          "d05"
+        ]
+      },
+      {
+        "title": "Luis E. Morales Date of Birth Conflict",
+        "detail": "The driver schedule and MVR show different dates of birth for Morales (1991-10-03 vs. 1991-10-30). The correct DOB must be confirmed to ensure the MVR belongs to the correct individual.",
+        "severity": "low",
+        "cites": [
+          "F03",
+          "d06",
+          "d15"
+        ]
+      }
+    ],
+    "recommendations": [
+      {
+        "action": "Obtain a fully completed, signed, and dated application with FEIN/SSN populated.",
+        "owner": "agent",
+        "reason": "Application is unsigned, undated, and missing FEIN \u2014 hard fails C1 and C3 prevent quoting.",
+        "cites": [
+          "C1",
+          "C3",
+          "d04"
+        ]
+      },
+      {
+        "action": "Obtain the loss run for policy term 2022-03-08 to 2023-02-10 (all lines) and provide a written explanation for the 308-day coverage lapse (2023-02-10 to 2023-12-15).",
+        "owner": "agent",
+        "reason": "Missing prior-year loss run (E6/F07) and unexplained lapse exceeding 30 days (E5) are hard refer triggers.",
+        "cites": [
+          "E5",
+          "E6",
+          "F07",
+          "d05"
+        ]
+      },
+      {
+        "action": "Clarify the legal entity: provide documentation (e.g., CA Secretary of State filing, DOT registration) confirming whether the insured is an INC or LLC, and explain the LLC name on the Q4 2025 IFTA return.",
+        "owner": "agent",
+        "reason": "Confirmed INC vs. LLC conflict across documents; correct entity is required for policy issuance.",
+        "cites": [
+          "F01",
+          "d21",
+          "d04"
+        ]
+      },
+      {
+        "action": "Provide a corrected 17-character VIN for the 2017 Freightliner currently listed as 3AKJGLD59HSKR736 (16 characters).",
+        "owner": "agent",
+        "reason": "Invalid VIN fails C8 and prevents vehicle from being scheduled on the policy.",
+        "cites": [
+          "C8",
+          "d22"
+        ]
+      },
+      {
+        "action": "Clarify Devraj Sandhu's role: if Sandhu is the owner and does not drive, remove from the driver schedule; if Sandhu does drive, obtain a CDL or confirm the vehicle type operated does not require one, and reconcile the application's 'owner does not drive' answer.",
+        "owner": "agent",
+        "reason": "Sandhu holds only a non-commercial Class C license (D1 fail) and the owner-driver conflict is unresolved (F10).",
+        "cites": [
+          "D1",
+          "F10",
+          "d04",
+          "d06",
+          "d10"
+        ]
+      },
+      {
+        "action": "Provide a CDL issue date for Marcus J. Whitfield (MVR is missing this field) to verify the required 2+ years of CDL experience, and address the 4-point speeding violation.",
+        "owner": "agent",
+        "reason": "CDL experience is unverifiable (D2 unknown/refer); serious violation requires underwriter awareness.",
+        "cites": [
+          "D2",
+          "d11"
+        ]
+      },
+      {
+        "action": "Identify Kevin Brandt (driver in claim GA1093318) and the 2021 Peterbilt (1XPBD49X5MD735204, claim GA1093318): confirm whether Brandt is/was a scheduled driver, provide his MVR, and explain why the Peterbilt is not on the vehicle schedule.",
+        "owner": "agent",
+        "reason": "Unscheduled driver and vehicle in loss history (F05, F06) suggest the fleet and driver pool may be larger than represented.",
+        "cites": [
+          "F05",
+          "F06",
+          "d02"
+        ]
+      },
+      {
+        "action": "Obtain current claim status and reserve detail for open claim GA1092764 ($52,500 reserved, $70,005 incurred), including whether litigation has been filed.",
+        "owner": "agent",
+        "reason": "Large open reserve on a late-reported claim is a material severity signal; legal expense exposure is unknown.",
+        "cites": [
+          "d02"
+        ]
+      },
+      {
+        "action": "Reconcile the operating radius: confirm which description is correct (application vs. quote form) and update the submission accordingly.",
+        "owner": "agent",
+        "reason": "Conflicting radius distributions (F09) affect classification and non-listed-states exposure under B2.",
+        "cites": [
+          "F09",
+          "d04",
+          "d05",
+          "B2"
+        ]
+      },
+      {
+        "action": "Confirm the correct date of birth for Luis E. Morales and provide documentation (e.g., license copy) to verify the MVR belongs to the correct individual.",
+        "owner": "agent",
+        "reason": "DOB conflict between driver schedule and MVR (F03) creates uncertainty about MVR identity.",
+        "cites": [
+          "F03",
+          "d06",
+          "d15"
+        ]
+      },
+      {
+        "action": "Clarify the carrier situation for the 2023-12-15 to 2024-12-15 term: confirm whether Granite Peak Specialty and Midwest Freight Owners Association Inc. provided separate lines of coverage, and obtain a full loss run (not just a no-loss letter) for cargo if a separate cargo policy existed.",
+        "owner": "agent",
+        "reason": "Carrier identity conflict (F11) and reliance on a no-loss letter for cargo (F14) leave loss history incomplete for that term.",
+        "cites": [
+          "F11",
+          "F14",
+          "d01",
+          "d07"
+        ]
+      },
+      {
+        "action": "Review the open claim GA1092764 reserve adequacy and loss trend given the single policy year (2024-12-15 to 2025-12-15) produced $77,459 incurred on 2 claims, with $52,500 still open; assess whether the account's loss experience is acceptable at standard terms or requires a deductible, exclusion, or increased premium.",
+        "owner": "underwriter",
+        "reason": "One policy year with a large open claim and late reporting on both claims is a meaningful severity and frequency signal for a 4-unit fleet.",
+        "cites": [
+          "d02",
+          "E5"
+        ]
+      },
+      {
+        "action": "Note that physical damage cannot be written in this program; confirm the applicant and agent have been advised and that liability (and cargo) only will be quoted.",
+        "owner": "underwriter",
+        "reason": "Physical damage was requested but is not available under this program per A4.",
+        "cites": [
+          "A4",
+          "d04",
+          "d05"
+        ]
+      },
+      {
+        "action": "Verify the agency of record: confirm whether the submitting agency is 'BAYLINE INSURANCE AGENCY INC' (application) or 'Bayline Insurance Services Inc.' (quote form) and correct the agency name in the system of record.",
+        "owner": "operations",
+        "reason": "Agency name conflict (F08) must be resolved for correct commission and appointment records.",
+        "cites": [
+          "F08",
+          "d04",
+          "d05"
+        ]
+      }
+    ]
+  }
+}
