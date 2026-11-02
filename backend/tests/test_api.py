@@ -109,6 +109,7 @@ def test_http_read_and_review(tmp_path, monkeypatch, stored):
     main.store.save(store.load("cobalt-mesa"))
     main.store.set_status("cobalt-mesa", state="done", name="sample")
 
+    assert client.get("/api/health").json()["ok"] is True
     assert client.get("/api/config").json()["mode"] == "demo"
     assert [r["id"] for r in client.get("/api/submissions").json()] == ["cobalt-mesa"]
     sub = client.get("/api/submissions/cobalt-mesa").json()

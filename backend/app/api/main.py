@@ -84,6 +84,12 @@ def _load(sid: str):
 
 # ---------------------------------------------------------------- read routes
 
+@app.get("/api/health")
+def health():
+    """For the load balancer / container health check."""
+    return {"ok": True, "mode": settings.mode}
+
+
 @app.get("/api/config")
 def config():
     return {"mode": settings.mode, "code_required": live(), "max_upload_mb": MAX_UPLOAD_MB,
