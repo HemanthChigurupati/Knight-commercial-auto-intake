@@ -1,87 +1,165 @@
-# Knight Commercial Auto Submission Intake (prototype)
+# Knight Commercial Auto Submission Intake
 
-AI-assisted intake and review of emailed Commercial Auto submissions: classify every
-document by content, extract and reconcile the data, re-check conflicts with an agent,
-apply Knight's underwriting guideline as deterministic rules, and present one consolidated
-view to the underwriter.
+A working prototype for the Knight Insurance Group case study. It takes an emailed Commercial Auto
+(trucking) submission, reads every document in it, cross-checks the documents against each other,
+applies Knight's underwriting guideline, and gives the underwriter one page with the decision and
+the evidence behind it.
 
-> Pipeline and review web app complete. The hosted demo replays a recorded live Amazon Bedrock run, so it costs nothing to explore.
+**Live demo: https://kn-396aa269de6d4e37a0fb100d9174e008.ecs.us-east-1.on.aws**
 
-## Pipeline
+The demo runs in *demo mode*: it replays a recorded live run on Amazon Bedrock, so every Claude
+output you see is real, and clicking around costs nothing. Open the Cobalt Mesa submission, then try:
+**Findings → F17** (the agent caught an OCR misread by looking at the license photo), any citation
+chip under **Summary**, and **Mark resolved** on a finding to watch the rules re-run.
 
-1. **Intake**: .eml / .zip / loose files; nested archives expanded; SHA-256 duplicate detection
-2. **Preprocess**: split PDFs into pages, detect text layer, extract embedded photos, read worksheets
-3. **OCR**: scans -> Textract (aws) or Tesseract (demo); photos -> Claude vision
-4. **Classify**: per page, content only; keyword signals + Claude Haiku, combined confidence
-5. **Group**: pages regrouped into logical documents (one MVR per driver, one loss run per term)
-6. **Extract**: facts per document type from `extraction/specs.py` (the rule -> fact map); each fact
-   carries value, verbatim quote, page and confidence, and is checked in code (`pipeline/verify.py`):
-   quote grounding, normalization, VIN length/characters/check digit
-7. **Reconcile** (`reconcile/`): facts regrouped into entities (applicant, drivers by license
-   number, vehicles by VIN, policy terms, IFTA quarters); findings classified as conflict, gap,
-   possible misread, outdated document or superseded, with severity and sources. Plain code, no AI.
-8. **Agent recheck** (`agent/`): for findings that may be reading mistakes, Claude investigates with
-   four read-only tools (read text, view page image, decode VIN, record verdict), capped at 6 turns;
-   verdicts confirmed / resolved / corrected / needs_human with the full tool trace kept for audit.
-   A plain tool-use loop, no framework.
-9. **Rules** (`rules/rules.yaml` + `app/rules/`): Knight's guideline as data -- each rule cites its
-   guideline section, a check, an outcome on failure and its thresholds. Open questions from the case
-   study are named settings with defaults. Decision: any decline -> DECLINE, else any refer or
-   unverifiable -> REFER, else PROCEED; routing by power units. Plain code, no AI.
-10. **AI analysis** (`app/analysis/`): one Claude call over an ID-labelled brief of the structured
-    results (never the raw PDFs) writes the summary, concerns and next actions. Every item must cite
-    rule / finding / document ids; a code check strips unknown ids and drops uncited items. The
-    rules-engine decision is fixed and never taken from the model.
-11. **Review web app** (`app/api/` + `frontend/`): FastAPI serving a React app. Review queue, upload,
-    background processing with step-by-step progress, and one page per submission: the decision,
-    the AI analysis with clickable citations, findings with the agent's tool trace, all rules, every
-    document with its extracted facts, and the audit trail. Any citation, fact or finding opens the
-    source page with the quoted text highlighted. The underwriter can confirm or resolve a finding
-    with a note; the rules re-run at once and the analysis is marked as written before the review.
+## What it found in the sample
 
-`tests/test_reconcile.py` holds the **expected-findings test**: it replays the recorded Bedrock
-run in `fixtures/` and checks that every issue an underwriter would find by hand is reported.
+On the case-study package (15 files, 33 pages and sheets) the pipeline produces:
+
+- **22 documents**, classified by content, not file name (it flags `MTC 23-24.pdf`, named like a loss
+  run, as a no-loss letter, and two license photos inside the MVR PDF).
+- **357 extracted facts**, each with the quote and page it came from.
+- **18 findings** across documents, including: an unscheduled driver (Kevin Brandt) and vehicle (2021
+  Peterbilt) in the loss history; the Q4 IFTA return filed as an LLC while everything else says INC; 4
+  power units on the schedule vs 5 on the quote; a Volvo VIN recorded as a Freightliner; a 16-character
+  VIN; a 308-day coverage lapse; a missing prior-term loss run.
+- **Agent recheck** of the 7 findings that could be reading mistakes: 6 confirmed as real, 1 corrected
+  (the OCR read license `O7314062` as `07314062`; the agent viewed the photo and fixed it).
+- **Decision: REFER → Small Fleet underwriting**, driven by 10 of Knight's 26 rules, with each failure
+  linked to its evidence.
+- **Analysis**: 13 concerns and 16 next actions (12 of them a request list for the agent), every one
+  citing the findings, rules, documents or claims behind it.
+
+## How it works
+
+```mermaid
+flowchart LR
+    A[Email / zip / files] --> B[Intake &<br>split pages]
+    B --> C[OCR<br>Textract · Claude vision]
+    C --> D[Classify<br>Claude Haiku + signals]
+    D --> E[Extract facts<br>Claude Sonnet]
+    E --> F[Reconcile<br>plain code]
+    F --> G[Agent recheck<br>Claude + read-only tools]
+    G --> H[Rules engine<br>plain code, rules.yaml]
+    H --> I[Analysis<br>Claude, cited]
+    I --> J[Review web app]
+    J -- underwriter resolves a finding --> H
+```
+
+| Step | AI or code | What it does |
+|---|---|---|
+| 1. Intake | code | Expands .eml / .zip (nested, with zip-slip and zip-bomb guards); SHA-256 duplicate detection |
+| 2. Preprocess | code | Splits PDFs into pages, detects text layers, extracts embedded photos, reads worksheets (hidden sheets excluded) |
+| 3. OCR | AWS | Scans → Amazon Textract; photos → Claude vision |
+| 4. Classify | Claude Haiku + code | Per page: keyword signals and the model, combined into one confidence; below 0.70 is flagged for review. Pages regrouped into documents (one MVR per driver, one loss run per term) |
+| 5. Extract | Claude Sonnet + code | Facts per document type from `extraction/specs.py`. Each fact has a value, verbatim quote, page and confidence, then is checked in code: the quote must be on the page, dates and money normalized, VINs checked for length, characters and check digit |
+| 6. Reconcile | code | Facts regrouped into entities (applicant, drivers by license number, vehicles by VIN, policy terms, IFTA quarters); disagreements become findings: conflict, gap, possible misread, outdated document, superseded |
+| 7. Agent recheck | Claude Sonnet, tool use | For findings that might be reading errors, Claude investigates with four read-only tools (read page text, view page image, decode VIN, record verdict), capped at 6 turns. Every tool call is kept for audit |
+| 8. Rules | code | Knight's guideline as data in `rules/rules.yaml`: 26 rules, each citing its guideline section, check, thresholds and outcome. Any decline → DECLINE, any fail or unverifiable → REFER, else PROCEED; routing by power units |
+| 9. Analysis | Claude Sonnet + code | Summary, concerns and next actions written from an ID-labelled brief of steps 1–8 (never the raw PDFs). A code check removes unknown citations and drops uncited items |
+| 10. Review app | FastAPI + React | Queue, upload with live progress, the decision, findings with the agent trace, rules, documents and facts, audit trail; every citation opens the source page with the quote highlighted |
+
+## Design decisions
+
+- **The decision is made by code, not by the model.** Eligibility and referral are Knight's rules,
+  so they live in a YAML file an underwriter can read and change, checked by plain functions with
+  tests. The model never sets or changes the outcome; a test feeds it an answer saying "DECLINE" and
+  checks that the decision stays REFER.
+- **AI where reading is hard, code where checking is easy.** Claude reads messy documents and
+  investigates suspicious values; code verifies quotes, VINs, dates and arithmetic. Numbers the
+  analysis quotes (claim reporting delays, totals) are computed in code and handed to the model.
+- **Every statement is traceable.** Facts carry their quote and page; findings carry every source;
+  analysis items must cite IDs that exist. Uncited claims are removed before anyone sees them.
+- **A bounded agent, not an open-ended one.** The recheck agent only gets read-only tools on this
+  submission, a turn limit, and must end with a structured verdict. It is a plain tool-use loop in
+  under 130 lines (`agent/recheck.py`), with no agent framework, so every step is visible and testable.
+- **Unknown is not pass.** If a rule cannot be verified from the documents (Whitfield's CDL date),
+  it counts as a referral, never as a pass.
+- **Human in the loop.** The underwriter confirms or resolves findings with a note; the rules re-run
+  immediately and the history is kept.
+- **Record and replay.** Every live Claude, Textract and vision call is saved to `fixtures/`, keyed
+  by its exact input. Demo mode replays them byte for byte on any machine, which is what makes the
+  hosted demo free and the tests deterministic.
+- **Open questions are named settings.** Where the guideline is ambiguous (do "non-listed states"
+  mean domicile or operations? does a baseline failure refer or decline?), the choice is a setting in
+  `rules.yaml` with a default, shown on the page, not buried in code.
+
+## AWS
+
+| Service | Use |
+|---|---|
+| Amazon Bedrock | Claude Haiku 4.5 (classification) and Sonnet 4.6 (extraction, agent, analysis), via US cross-region inference profiles |
+| Amazon Textract | OCR of scanned pages |
+| Amazon ECS (Express Mode, Fargate) | Hosts the container behind an HTTPS load balancer; one task |
+| Amazon ECR | Container images, pushed by GitHub Actions |
+| Amazon CloudWatch | Container logs (each job logs its steps and decision) and metrics |
+| IAM | Separate least-privilege users: Bedrock/Textract for live runs, ECR push only for CI |
+
+CI (`.github/workflows/ci.yml`) runs the test suite on every push and, on `main`, builds the image and
+pushes it to ECR.
 
 ## Modes
 
-| Mode | AI | OCR | Storage | Needs |
-|---|---|---|---|---|
-| `demo` (default) | Replays recorded responses | Tesseract | Local disk | Nothing |
-| `local` | Anthropic API | Tesseract / Claude vision | Local disk | `ANTHROPIC_API_KEY` |
-| `aws` | Amazon Bedrock (Claude, US inference profiles) | Textract / Claude vision | S3 (KMS) + SQS | AWS profile |
+| Mode | AI | OCR | Needs |
+|---|---|---|---|
+| `demo` (default) | replays recorded responses | replays recorded OCR (Tesseract for new files) | nothing |
+| `aws` | Amazon Bedrock | Textract / Claude vision | an AWS profile with Bedrock and Textract access |
+| `local` | Anthropic API | Tesseract / Claude vision | `ANTHROPIC_API_KEY` |
 
-## Recording a live run for demo mode
+In demo mode a *new* upload still runs every step that needs no AI (intake, OCR, reconciliation,
+rules); the AI steps show as not run. Live mode on a server is gated by `ACCESS_CODE`: every upload,
+rerun and review needs the code, uploads are capped at 25 MB, and jobs run one at a time.
 
-Every live (`aws` / `local`) run saves each Claude response to `fixtures/llm_cache/` and each
-OCR result to `fixtures/ocr_cache/` (keyed by source-file hash + page). Commit those folders
-and `demo` mode replays that run exactly, with no credentials and no cost.
-
-After changing one prompt, set `REUSE_RECORDINGS=true` for the live run: calls that already have a
-recording are replayed, and only the changed ones go to Bedrock.
-
-## Run it
+## Run it locally
 
 ```bash
 cd backend
-pip install -r requirements.txt        # plus the tesseract binary for new uploads in demo mode
-uvicorn app.api.main:app --port 8000   # open http://localhost:8000
+pip install -r requirements.txt          # plus the tesseract binary for new uploads in demo mode
+uvicorn app.api.main:app --port 8000     # http://localhost:8000; the sample is processed on start
+pytest -q                                # 52 tests
 ```
 
-The server processes the Cobalt Mesa sample on first start (about 15 seconds in demo mode).
-Pipeline only, from the command line:
+Pipeline only: `python -m app.pipeline.run "../samples/cobalt-mesa/Sample Submission - Cobalt Mesa Transport.zip"`.
+As a container: `docker build -t knight-intake . && docker run -p 8000:8000 knight-intake`.
 
-```bash
-python -m app.pipeline.run "../samples/cobalt-mesa/Sample Submission - Cobalt Mesa Transport.zip"
-pytest -q
+**Recording a live run.** Run with `APP_MODE=aws` and commit `fixtures/`. After changing one prompt,
+add `REUSE_RECORDINGS=true` so only the changed calls go to Bedrock.
+
+**Frontend.** React source in `frontend/src`, bundled with esbuild; the bundle in `frontend/dist` is
+committed so the server needs only Python (`cd frontend && npm install && npm run build` to rebuild).
+
+## Repository map
+
+```
+backend/app/
+  pipeline/     intake, preprocess, classify, extract, verify (code checks), run (orchestrator)
+  extraction/   specs.py: which facts to read from each document type, mapped to the rules
+  reconcile/    entities and cross-document checks
+  agent/        the recheck agent: tools and the tool-use loop
+  rules/        rules engine and one check function per rule kind
+  analysis/     the brief builder and the cited analysis
+  api/          FastAPI routes, background jobs, storage, underwriter review
+  providers/    Bedrock / Anthropic / replay LLMs, Textract / vision / Tesseract OCR
+rules/rules.yaml   Knight's guideline as data
+fixtures/          recorded Bedrock and Textract responses (demo mode and tests)
+frontend/src/      React app
+tests/             52 tests, including the expected-findings test in test_reconcile.py
 ```
 
-Or as one container: `docker build -t knight-intake . && docker run -p 8000:8000 knight-intake`.
+## What's next
 
-**Live mode on a server.** Set `APP_MODE=aws` and `ACCESS_CODE=<something>`: every upload, rerun and
-review then needs the code (sent as the `X-Access-Code` header; the page asks for it). Uploads are
-limited to 25 MB and jobs run one at a time.
+This is a prototype. For production I would:
 
-**Frontend.** The React source is in `frontend/src`; the built bundle in `frontend/dist` is committed
-so the server needs only Python. After changing the source: `cd frontend && npm install && npm run build`.
+- **Move state off the container**: originals to S3 (the storage interface and an S3 class exist but
+  are not wired in), submissions and reviews to a database. Then the service can run several tasks
+  and nothing is lost on a restart; today the demo keeps state on one task's disk.
+- **Queue the work**: uploads to SQS, a worker service to process them, so the web tier stays light
+  (a queue interface exists, not yet wired in).
+- **Real sign-in** (Cognito or the carrier's SSO) instead of an access code, with reviewer identity on
+  every review.
+- **Email intake**: SES receiving into S3, so submissions arrive without an upload.
+- **More samples and an evaluation set**, to measure extraction accuracy per field and tune the
+  review threshold.
+- **Close the loop**: send the agent request list from the app, and re-run when documents arrive.
 
-All companies, people and records in `samples/` are fictitious (provided with the case study).
+All companies, people and records in `samples/` are fictitious and were provided with the case study.
