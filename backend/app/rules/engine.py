@@ -60,6 +60,7 @@ def evaluate(sub: Submission, config: dict | None = None, version: str = "") -> 
         if effect == "refer" and on_fail == "info":
             effect = "info"
         results.append(RuleResult(rule_id=rule["id"], section=rule["section"], title=rule["title"],
+                                  problem=rule.get("problem", ""),
                                   on_fail=on_fail, status=c.status, effect=effect, message=c.message,
                                   evidence=c.evidence, finding_ids=c.finding_ids))
 

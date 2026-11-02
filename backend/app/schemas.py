@@ -220,6 +220,7 @@ class RuleResult(BaseModel):
     rule_id: str
     section: str
     title: str
+    problem: str = ""                      # short label when it fails, e.g. "Unsigned application"
     on_fail: str                           # decline | refer | info
     status: str                            # pass | fail | unknown | info
     effect: str = "none"                   # what this result does to the decision

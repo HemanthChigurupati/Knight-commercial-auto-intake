@@ -32,6 +32,7 @@ rules:
   - id: A1
     section: Program appetite
     title: Only eligible vehicle types (semi-trucks / tractors)
+    problem: Ineligible vehicle type
     check: vehicle_types_eligible
     on_fail: decline
     params:
@@ -39,17 +40,20 @@ rules:
   - id: A2
     section: Program appetite
     title: New ventures meet the experience requirement
+    problem: New venture lacks experience
     check: new_venture
     on_fail: refer
     params: {min_years_in_business: 2}
   - id: A3
     section: Coverage snapshot
     title: No auto liability deductible requested
+    problem: Deductible requested
     check: no_liability_deductible
     on_fail: refer
   - id: A4
     section: Coverage snapshot
     title: Physical damage is not available
+    problem: Physical damage requested
     check: physical_damage_not_requested
     on_fail: info
 
@@ -57,6 +61,7 @@ rules:
   - id: B1
     section: Available states
     title: Account is based in an available state
+    problem: Not in an available state
     check: domicile_state_available
     on_fail: decline
     params: &states
@@ -64,12 +69,14 @@ rules:
   - id: B2
     section: Prohibited exposures
     title: Operations in non-listed states
+    problem: Operates in non-listed states
     check: operating_states
     on_fail: info          # becomes decline when non_listed_states_scope = operations
     params: *states
   - id: B3
     section: Prohibited exposures
     title: No operations within 50 miles of the USA/Mexico border
+    problem: Near the Mexico border
     check: mexico_border
     on_fail: refer
     params:
@@ -79,47 +86,55 @@ rules:
   - id: C1
     section: Submission requirements
     title: Application includes FEIN/SSN
+    problem: No FEIN/SSN
     check: fact_present
     on_fail: refer
     params: {field: fein, label: FEIN/SSN}
   - id: C2
     section: Submission requirements
     title: Application includes MC/Docket number
+    problem: No MC/Docket number
     check: fact_present
     on_fail: refer
     params: {field: mc_number, label: MC/Docket number}
   - id: C3
     section: Submission requirements
     title: Application is signed
+    problem: Unsigned application
     check: application_signed
     on_fail: refer
   - id: C4
     section: Submission requirements
     title: Loss runs valued within 60 days
+    problem: Loss runs out of date
     check: loss_runs_current
     on_fail: refer
     params: {max_age_days: 60}
   - id: C5
     section: Submission requirements
     title: Loss runs cover the expiring year and at least 3 prior years
+    problem: Loss-run year missing
     check: loss_run_years
     on_fail: refer
     params: {prior_years: 3}
   - id: C6
     section: Submission requirements
     title: Most recent 4 quarters of IFTA reports
+    problem: IFTA quarters missing
     check: ifta_quarters
     on_fail: refer
     params: {quarters: 4}
   - id: C7
     section: Submission requirements
     title: Every scheduled driver has an MVR dated within 90 days
+    problem: MVR missing or stale
     check: mvrs_current
     on_fail: refer
     params: {max_age_days: 90}
   - id: C8
     section: Submission requirements
     title: Vehicle schedule has year, make, 17-character VIN and value for every unit
+    problem: Invalid vehicle schedule
     check: vehicle_schedule_complete
     on_fail: refer
 
@@ -127,17 +142,20 @@ rules:
   - id: D1
     section: Safe driver criteria
     title: Every scheduled driver holds a valid commercial license (CDL)
+    problem: Driver without a CDL
     check: drivers_have_cdl
     on_fail: baseline          # resolved from settings.assumptions.baseline_failure_outcome
   - id: D2
     section: Safe driver criteria
     title: At least 2 years of CDL experience
+    problem: CDL experience unverified
     check: cdl_experience
     on_fail: baseline
     params: {min_years: 2}
   - id: D3
     section: Safe driver criteria
     title: Drivers are 23 or older; drivers 65+ need a DOT medical report
+    problem: Driver age requirement
     check: driver_ages
     on_fail: baseline
     params: {min_age: 23, medical_age: 65}
@@ -146,12 +164,14 @@ rules:
   - id: E1
     section: Driver point thresholds
     title: No more than 6 points in 3 years or 4 points in 12 months
+    problem: Too many MVR points
     check: driver_points
     on_fail: refer
     params: {max_points_3y: 6, max_points_12m: 4}
   - id: E2
     section: Unacceptable driver history
     title: No unacceptable violations
+    problem: Unacceptable violation
     check: unacceptable_violations
     on_fail: decline
     params:
@@ -161,6 +181,7 @@ rules:
   - id: E3
     section: Prohibited exposures
     title: No prohibited cargo or operations
+    problem: Prohibited cargo or operation
     check: prohibited_exposures
     on_fail: decline
     params:
@@ -168,6 +189,7 @@ rules:
   - id: E4
     section: Selective exposures
     title: Selective exposures (auto haulers, box trucks)
+    problem: Selective exposure
     check: selective_exposures
     on_fail: info
     params:
@@ -175,12 +197,14 @@ rules:
   - id: E5
     section: Prior insurance
     title: Continuous coverage for the most recent 3 years; lapses over 30 days explained
+    problem: Coverage lapse
     check: prior_insurance
     on_fail: refer
     params: {years: 3, max_lapse_days: 30}
   - id: E6
     section: Prior insurance
     title: Losses reported for every prior term listed
+    problem: Prior term unreported
     check: losses_for_every_term
     on_fail: refer
 
@@ -188,11 +212,13 @@ rules:
   - id: F1
     section: Routing and referral
     title: Conflicting information across documents
+    problem: Unresolved conflicts
     check: open_conflicts
     on_fail: refer
     params: {severities: [high, medium]}
   - id: F2
     section: Routing and referral
     title: Unreported drivers or vehicles in loss history
+    problem: Unreported driver or vehicle
     check: unreported_exposures
     on_fail: refer

@@ -1,7 +1,7 @@
 // The review queue: every submission, its decision, and where new ones come in.
 import { useCallback, useEffect, useRef, useState } from "react";
 import { api, getCode, setCode } from "./api.js";
-import { OUTCOMES, ROUTES, fmtTime } from "./format.js";
+import { OUTCOMES, ROUTES, fmtTime, titleCase } from "./format.js";
 
 export function Progress({ step, label }) {
   return (
@@ -27,7 +27,7 @@ export default function Queue({ config }) {
   }, [rows, load]);
 
   return (
-    <main className="page">
+    <main className="desk">
       <div className="queue-head">
         <div>
           <h1>Submissions</h1>
@@ -57,7 +57,7 @@ function QueueRow({ r }) {
     <li>
       <a className="queue-row" href={`#/s/${r.id}`}>
         <span className="queue-main">
-          <span className="queue-title">{r.applicant || r.name}</span>
+          <span className="queue-title">{r.applicant ? titleCase(r.applicant) : r.name}</span>
           <span className="queue-meta">
             {r.received_at ? `Received ${fmtTime(r.received_at)}` : "Sample submission"}
             {r.documents ? `, ${r.documents} documents` : ""}

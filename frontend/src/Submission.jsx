@@ -4,7 +4,7 @@ import { api } from "./api.js";
 import { Cite, Drawer, Ids, Severity, SubCtx, useSub } from "./Evidence.jsx";
 import {
   DOC_TYPES, KINDS, OUTCOMES, OWNERS, ROUTES, RULE_STATUS, STATUS, VERDICTS,
-  fmtTime, needsAttention, pct,
+  fmtTime, needsAttention, pct, titleCase,
 } from "./format.js";
 import { Progress } from "./Queue.jsx";
 
@@ -56,38 +56,40 @@ export default function Submission({ id }) {
   const openCount = findings.filter(needsAttention).length;
   const tabs = [
     ["summary", "Summary"],
-    ["findings", `Findings (${openCount} open)`],
+    ["findings", `Findings ${openCount}`],
     ["rules", "Rules"],
-    ["documents", `Documents (${sub.documents.length})`],
-    ["audit", "Audit trail"],
+    ["documents", `Documents ${sub.documents.length}`],
+    ["audit", "Audit"],
   ];
 
   return (
     <SubCtx.Provider value={ctx}>
-      <Page>
-        <Header sub={sub} status={status} />
-        <DecisionSign decision={sub.decision} />
-        <nav className="tabs" role="tablist">
+      <main className="desk">
+        <a href="#/" className="back">All submissions</a>
+        <nav className="folder-tabs" role="tablist">
           {tabs.map(([k, label]) => (
-            <button key={k} role="tab" aria-selected={tab === k} className={tab === k ? "tab on" : "tab"}
+            <button key={k} role="tab" aria-selected={tab === k} className={tab === k ? "ftab on" : "ftab"}
               onClick={() => setTab(k)}>{label}</button>
           ))}
         </nav>
-        <div role="tabpanel">
-          {tab === "summary" && <Summary sub={sub} />}
-          {tab === "findings" && <Findings findings={findings} />}
-          {tab === "rules" && <Rules decision={sub.decision} />}
-          {tab === "documents" && <Documents sub={sub} />}
-          {tab === "audit" && <Audit sub={sub} status={status} />}
+        <div className="folder">
+          <div className="paper" role="tabpanel">
+            <FileHead sub={sub} status={status} />
+            {tab === "summary" && <Summary sub={sub} setTab={setTab} />}
+            {tab === "findings" && <Findings findings={findings} />}
+            {tab === "rules" && <Rules decision={sub.decision} />}
+            {tab === "documents" && <Documents sub={sub} />}
+            {tab === "audit" && <Audit sub={sub} status={status} />}
+          </div>
         </div>
-      </Page>
+      </main>
       <Drawer stack={stack} setStack={setStack} />
     </SubCtx.Provider>
   );
 }
 
 function Page({ children }) {
-  return <main className="page">{children}</main>;
+  return <main className="desk"><div className="folder"><div className="paper">{children}</div></div></main>;
 }
 
 const STEP_NAMES = ["Receive files", "Split into pages", "Read scans (OCR)", "Classify documents",
@@ -105,111 +107,155 @@ function Steps({ current }) {
 
 // ------------------------------------------------------------ header and decision
 
-function Header({ sub, status }) {
+function FileHead({ sub, status }) {
   const app = sub.reconciliation?.entities.find((e) => e.kind === "applicant");
   const v = (f) => app?.fields[f]?.[0]?.value;
+  const d = sub.decision;
+  const name = v("applicant_name") || status.name;
   return (
-    <header className="sub-head">
-      <a href="#/" className="back">Submissions</a>
-      <h1>{v("applicant_name") || status.name}</h1>
-      <dl className="facts-inline">
-        {v("dot_number") && <div><dt>DOT</dt><dd>{v("dot_number")}</dd></div>}
-        {v("mc_number") && <div><dt>MC</dt><dd>{v("mc_number")}</dd></div>}
-        {v("effective_date") && <div><dt>Effective</dt><dd>{v("effective_date")}</dd></div>}
-        {v("agency_name") && <div><dt>Agency</dt><dd>{v("agency_name")}</dd></div>}
-        <div><dt>Received</dt><dd title={sub.received_name}>{sub.files.length} files, {fmtTime(status.received_at) || "sample"}</dd></div>
-      </dl>
+    <header className="file-head">
+      <div>
+        <h1>{titleCase(name)}</h1>
+        <p className="meta">
+          {v("dot_number") && <span>DOT {v("dot_number")}</span>}
+          {v("mc_number") && <span>MC {v("mc_number")}</span>}
+          {v("effective_date") && <span>Effective {v("effective_date")}</span>}
+          {v("agency_name") && <span>{titleCase(String(v("agency_name")))}</span>}
+          <span title={sub.received_name}>{sub.files.length} files received {fmtTime(status.received_at) || ""}</span>
+        </p>
+      </div>
+      {d && (
+        <section className={`disposition disp-${d.outcome}`} aria-label="Decision">
+          <div className="disp-label">Disposition</div>
+          <div className="disp-outcome">{OUTCOMES[d.outcome]}</div>
+          <div className="disp-route">to {ROUTES[d.route]}</div>
+          <div className="disp-reason" title={d.route_reason}>{shortReason(d.route_reason)}</div>
+        </section>
+      )}
     </header>
   );
 }
 
-function DecisionSign({ decision }) {
-  if (!decision) return null;
+
+function shortReason(r) {
+  const m = /^(\d+) power units/.exec(r || "");
+  return m ? `${m[1]} power units on schedule` : r;
+}
+
+const PAST = { refer: "Referred", decline: "Declined", proceed: "Checked" };
+
+function RuleTags({ decision, setTab }) {
+  const { open } = useSub();
   const drivers = decision.results.filter((r) => decision.reasons.includes(r.rule_id));
+  const n = (k) => decision.results.filter((r) => r.status === k).length;
   return (
-    <section className={`sign sign-${decision.outcome}`} aria-label="Decision">
-      <div className="sign-face">
-        <div className="sign-outcome">{OUTCOMES[decision.outcome]}</div>
-        <div className="sign-route">
-          <svg viewBox="0 0 24 24" aria-hidden="true" className="sign-arrow"><path d="M4 12h13m-5-6 6 6-6 6" /></svg>
-          {ROUTES[decision.route]}
-        </div>
-        <div className="sign-reason">{decision.route_reason}</div>
+    <section className="rules-block">
+      <div className="label-row">
+        <h2 className="label">{drivers.length ? `${PAST[decision.outcome]} under ${drivers.length} rules` : "Every rule passed"}</h2>
+        <span className="legend"><i className="dot dot-fail" />failed <i className="dot dot-unknown" />can't verify</span>
+        <span className="legend-right">{n("pass")} passed · {n("info")} notes · <button type="button" className="linkish" onClick={() => setTab("rules")}>See all {decision.results.length} rules</button></span>
       </div>
-      <div className="sign-drivers">
-        <p>{drivers.length ? `${drivers.length} rules send this to ${OUTCOMES[decision.outcome].toLowerCase()}:` : "Every rule passed."}</p>
-        <div className="chips">{drivers.map((r) => <DriverChip key={r.rule_id} r={r} />)}</div>
+      <div className="tags">
+        {drivers.map((r) => (
+          <button key={r.rule_id} type="button" className="rtag" onClick={() => open({ ref: r.rule_id })} title={r.message}>
+            <i className={`dot dot-${r.status}`} /><b>{r.rule_id}</b> {r.problem || r.title}
+          </button>
+        ))}
       </div>
     </section>
   );
 }
 
-function DriverChip({ r }) {
-  const { open } = useSub();
+function Pipeline({ sub, setTab }) {
+  const rec = sub.reconciliation;
+  const facts = sub.extractions.reduce((n, ex) => n + [...Object.values(ex.facts),
+    ...Object.values(ex.records || {}).flatMap((rows) => rows.flatMap((r) => Object.values(r)))]
+    .filter((f) => f.status === "found").length, 0);
+  const rechecked = (rec?.findings || []).filter((f) => f.review && f.review.verdict !== "not_run").length;
+  const steps = [
+    [sub.files.length, "files", "code", "documents"],
+    [sub.units.length, "pages", "code", "documents"],
+    [sub.documents.length, "documents", "AI", "documents"],
+    [facts, "facts", "AI", "documents"],
+    [rec?.findings.length || 0, "findings", "code", "findings"],
+    [rechecked, "rechecked", "AI", "findings"],
+    [sub.decision?.results.length || 0, "rules", "code", "rules"],
+  ];
   return (
-    <button type="button" className={`driver dr-${r.status}`} onClick={() => open({ ref: r.rule_id })}>
-      <strong>{r.rule_id}</strong> {r.title}
-    </button>
+    <section>
+      <h2 className="label">How this file was read</h2>
+      <ol className="pipeline">
+        {steps.map(([n, label, kind, tab]) => (
+          <li key={label}>
+            <button type="button" onClick={() => setTab(tab)}>
+              <span className="pn">{n}</span>
+              <span className="pl">{label}</span>
+              <span className={`pk pk-${kind.toLowerCase()}`}>{kind}</span>
+            </button>
+          </li>
+        ))}
+      </ol>
+    </section>
   );
 }
 
 // ------------------------------------------------------------ summary (AI analysis)
 
-function Summary({ sub }) {
+function Summary({ sub, setTab }) {
   const a = sub.analysis;
-  if (!a || a.status !== "ok") {
-    return (
-      <div className="panel">
-        <h2>Analysis</h2>
-        <p className="muted">The AI analysis did not run for this submission
-          {sub.decision ? "; the decision above comes from the rules and does not depend on it." : "."}</p>
-        {a?.warnings?.map((w, i) => <p key={i} className="small muted">{w}</p>)}
-      </div>
-    );
-  }
+  const findings = (sub.reconciliation?.findings || []).filter(needsAttention);
   const byOwner = {};
-  for (const r of a.recommendations) (byOwner[r.owner] ||= []).push(r);
+  for (const r of a?.recommendations || []) (byOwner[r.owner] ||= []).push(r);
   return (
-    <div className="summary">
-      <section className="panel lead">
-        {a.stale && <p className="notice">Findings were reviewed after this analysis was written. The decision above is current.</p>}
-        <p className="summary-text">{a.summary}</p>
-        <p className="small muted">Written by {a.model.replace(/^us\.anthropic\./, "")} from the structured results. Every item cites its evidence; uncited items are removed in code.</p>
-      </section>
-
-      <section className="panel">
-        <h2>Concerns</h2>
-        <ol className="concerns">
-          {a.concerns.map((c, i) => (
-            <li key={i} className={`concern c-${c.severity}`}>
-              <h3><Severity level={c.severity} /> {c.title}</h3>
-              <p>{c.detail}</p>
-              <div className="chips">{c.cites.map((id) => <Cite key={id} id={id} />)}</div>
-            </li>
-          ))}
-        </ol>
-      </section>
-
-      <section className="panel">
-        <h2>Next actions</h2>
-        {["agent", "underwriter", "operations"].filter((o) => byOwner[o]).map((owner) => (
-          <div key={owner} className="owner-group">
-            <div className="owner-head">
-              <h3>{OWNERS[owner]}</h3>
-              {owner === "agent" && <CopyRequest items={byOwner.agent} />}
-            </div>
-            <ul className="actions-list">
-              {byOwner[owner].map((r, i) => (
-                <li key={i}>
-                  <p>{r.action}</p>
-                  <div className="chips">{r.cites.map((id) => <Cite key={id} id={id} />)}</div>
-                </li>
+    <>
+      {sub.decision && <RuleTags decision={sub.decision} setTab={setTab} />}
+      <Pipeline sub={sub} setTab={setTab} />
+      <div className="columns">
+        <section>
+          <h2 className="label">Analysis</h2>
+          {(!a || a.status !== "ok") ? (
+            <p className="muted">The AI analysis did not run for this submission{sub.decision ? "; the disposition comes from the rules and does not depend on it." : "."}</p>
+          ) : (
+            <>
+              {a.stale && <p className="notice">Findings were reviewed after this analysis was written. The disposition is current.</p>}
+              <p className="summary-text">{a.summary}</p>
+              <ol className="concerns">
+                {a.concerns.map((c, i) => (
+                  <li key={i} className={`concern c-${c.severity}`}>
+                    <h3>{c.title} <Severity level={c.severity} /></h3>
+                    <p>{c.detail}</p>
+                    <div className="cites">{c.cites.map((id) => <Cite key={id} id={id} />)}</div>
+                  </li>
+                ))}
+              </ol>
+              <h2 className="label spaced">Next actions</h2>
+              {["agent", "underwriter", "operations"].filter((o) => byOwner[o]).map((owner) => (
+                <div key={owner} className="owner-group">
+                  <div className="owner-head">
+                    <h3>{OWNERS[owner]}</h3>
+                    {owner === "agent" && <CopyRequest items={byOwner.agent} />}
+                  </div>
+                  <ul className="actions-list">
+                    {byOwner[owner].map((r, i) => (
+                      <li key={i}>
+                        <p>{r.action}</p>
+                        <div className="cites">{r.cites.map((id) => <Cite key={id} id={id} />)}</div>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
               ))}
-            </ul>
-          </div>
-        ))}
-      </section>
-    </div>
+              <p className="fine">Written by {a.model.replace(/^us\.anthropic\./, "")} from the structured results. Every item cites its evidence; uncited items are removed in code.</p>
+            </>
+          )}
+        </section>
+        <section>
+          <h2 className="label">Findings needing a decision ({findings.length})</h2>
+          <ul className="rows">{findings.slice(0, 8).map((f) => <FindingRow key={f.finding_id} f={f} />)}</ul>
+          {findings.length > 8 && <button type="button" className="linkish more" onClick={() => setTab("findings")}>All {findings.length} findings</button>}
+        </section>
+      </div>
+    </>
   );
 }
 
@@ -232,11 +278,11 @@ function Findings({ findings }) {
     ["Resolved", findings.filter((f) => f.status === "resolved")],
   ];
   return (
-    <div className="panel">
+    <div>
       <p className="intro">Where the documents disagree or something is missing. The agent rechecked the ones that could be reading mistakes; open any finding to see its sources and record your decision.</p>
       {groups.map(([title, list]) => list.length > 0 && (
         <section key={title}>
-          <h2>{title} ({list.length})</h2>
+          <h2 className="label spaced">{title} ({list.length})</h2>
           <ul className="rows">{list.map((f) => <FindingRow key={f.finding_id} f={f} />)}</ul>
         </section>
       ))}
@@ -254,8 +300,8 @@ function FindingRow({ f }) {
           <span className="row-title"><Ids text={f.title} /></span>
           <span className="row-meta">
             {KINDS[f.kind]}
-            {f.review && f.review.verdict !== "not_run" && <span className="tag">{VERDICTS[f.review.verdict]}</span>}
-            {f.human && <span className="tag tag-human">{STATUS[f.status]} by you</span>}
+            {f.review && f.review.verdict !== "not_run" && <span className="tag-agent">{VERDICTS[f.review.verdict]}</span>}
+            {f.human && <span className="tag-human">{STATUS[f.status]} by you</span>}
           </span>
         </span>
         <Severity level={f.severity} />
@@ -277,16 +323,16 @@ function Rules({ decision }) {
   }
   const counts = (k) => decision.results.filter((r) => r.status === k).length;
   return (
-    <div className="panel">
+    <div>
       <p className="intro">Knight's guideline as {decision.results.length} rules, checked in code: {counts("pass")} pass, {counts("fail")} fail, {counts("unknown")} can't be verified, {counts("info")} notes. Any failure or unverifiable item means Refer. Rules version {decision.rules_version}.</p>
       {sections.map((s) => (
         <section key={s.name}>
-          <h2>{s.name}</h2>
+          <h2 className="label spaced">{s.name}</h2>
           <ul className="rows">
             {s.rules.map((r) => (
               <li key={r.rule_id}>
                 <button type="button" className="row" onClick={() => open({ ref: r.rule_id })}>
-                  <span className="row-id">{r.rule_id}</span>
+                  <span className="row-id"><i className={`dot dot-${r.status}`} />{r.rule_id}</span>
                   <span className="row-main">
                     <span className="row-title">{r.title}</span>
                     {r.status !== "pass" && <span className="row-meta">{r.message}</span>}
@@ -312,7 +358,7 @@ function Documents({ sub }) {
   const count = (ex, st) => all(ex).filter((f) => f.status === st).length;
   const dups = sub.files.filter((f) => f.duplicate_of).length;
   return (
-    <div className="panel">
+    <div>
       <p className="intro">{sub.files.length} files{dups ? ` (${dups} duplicates set aside)` : ""} became {sub.units.length} pages and sheets, regrouped by content into {sub.documents.length} documents. File names are never trusted for the type.</p>
       <div className="table-scroll">
         <table className="grid docs">
@@ -346,7 +392,7 @@ const EVENT_NAMES = { intake: "Receive files", preprocess: "Split into pages", o
 
 function Audit({ sub, status }) {
   return (
-    <div className="panel">
+    <div>
       <p className="intro">Every step, when it ran and what it produced. Mode: {status.mode || "demo"}.</p>
       <ol className="audit">
         {sub.events.map((e, i) => {

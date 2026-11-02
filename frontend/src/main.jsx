@@ -24,12 +24,12 @@ function App() {
     <>
       <div className="topbar">
         <a href="#/" className="brand">Knight Intake</a>
-        <span className="brand-sub">Commercial Auto submission review</span>
-        {config && (
-          <span className={`mode mode-${config.mode}`}>
-            {config.mode === "demo" ? "Demo mode, replaying a recorded run" : `Live: ${config.mode}`}
-          </span>
-        )}
+        <span className="brand-sub">underwriting file</span>
+        {config && (config.mode === "demo" ? (
+          <span className="mode" title="Every AI output shown was recorded from a live run on Amazon Bedrock. New uploads run the steps that need no AI.">Recorded Bedrock run</span>
+        ) : (
+          <span className="mode mode-live">Live: {config.mode}</span>
+        ))}
       </div>
       {route.page === "submission" ? <Submission id={route.id} /> : <Queue config={config} />}
     </>

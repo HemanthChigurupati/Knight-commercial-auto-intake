@@ -88,3 +88,9 @@ export function findClaim(sub, number) {
 export function needsAttention(f) {
   return f.status === "open" || f.status === "confirmed" || f.status === "needs_human";
 }
+
+// "COBALT MESA TRANSPORT INC" -> "Cobalt Mesa Transport Inc"
+export function titleCase(s) {
+  return String(s).toLowerCase().replace(/\b([a-z])/g, (m) => m.toUpperCase())
+    .replace(/\b(Inc|Llc|Mc|Dot)\b/g, (m) => ({ Inc: "Inc", Llc: "LLC", Mc: "MC", Dot: "DOT" })[m]);
+}
