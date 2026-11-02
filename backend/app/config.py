@@ -56,6 +56,8 @@ class Settings:
         "OCR_CACHE_DIR", str(REPO_ROOT / "fixtures" / "ocr_cache"))))
     # When true, every real LLM/OCR call is written to llm_cache_dir so demo mode can replay it.
     record_llm: bool = field(default_factory=lambda: _env("RECORD_LLM", "true").lower() == "true")
+    # Live modes: serve calls that already have a recording, call the model only for new ones.
+    reuse_recordings: bool = field(default_factory=lambda: _env("REUSE_RECORDINGS", "false").lower() == "true")
 
     # Pages with fewer extractable characters than this are treated as image-only.
     min_text_chars: int = field(default_factory=lambda: int(_env("MIN_TEXT_CHARS", "40")))

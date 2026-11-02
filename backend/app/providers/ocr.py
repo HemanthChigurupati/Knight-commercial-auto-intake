@@ -166,4 +166,5 @@ class CachingOCR:
 
 def build_ocr(settings: Settings, llm: LLMProvider) -> OCRProvider:
     return CachingOCR(RoutedOCR(settings, llm), settings.ocr_cache_dir,
-                      replay=settings.mode == "demo", record=settings.record_llm)
+                      replay=settings.mode == "demo" or settings.reuse_recordings,
+                      record=settings.record_llm)

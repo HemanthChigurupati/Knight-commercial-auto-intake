@@ -14,6 +14,13 @@ def _v(e, field):
     return o[0].value if o else None
 
 
+def _delay(claim) -> str:
+    """Days from loss to report, computed here so the model never does date arithmetic."""
+    from ..pipeline.verify import parse_date
+    a, b = parse_date(str(claim["date_of_loss"].value or "")), parse_date(str(claim["date_reported"].value or ""))
+    return f", {(b - a).days} days after the loss" if a and b else ""
+
+
 def build_brief(sub: Submission) -> tuple[str, set[str]]:
     """Returns (brief text, the set of ids the model may cite)."""
     ids: set[str] = set()
@@ -66,7 +73,7 @@ def build_brief(sub: Submission) -> tuple[str, set[str]]:
                 if c["claim_number"].value:          # claim numbers are citable evidence too
                     ids.add(str(c["claim_number"].value))
                 lines.append(f"  - claim {c['claim_number'].value}: loss {c['date_of_loss'].value}, reported "
-                             f"{c['date_reported'].value} (late: {c['late_reported'].value}), driver "
+                             f"{c['date_reported'].value}{_delay(c)} (late: {c['late_reported'].value}), driver "
                              f"{c['driver_name'].value}, vehicle {c['vehicle_description'].value} "
                              f"{c['vehicle_vin'].value}, {c['status'].value}, incurred {c['incurred'].value}; "
                              f"{c['unreported_driver_or_unit'].value or ''}")

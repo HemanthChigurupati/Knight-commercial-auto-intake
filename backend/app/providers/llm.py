@@ -254,15 +254,25 @@ class ReplayLLM:
 
 
 class RecordingLLM:
-    """Pass-through that saves every response so demo mode can replay the run exactly."""
+    """Pass-through that saves every response so demo mode can replay the run exactly.
 
-    def __init__(self, inner: LLMProvider, cache_dir: Path):
+    With reuse=True, a call that already has a recording is served from it and only new or
+    changed calls go to the live model -- re-recording after a prompt change costs one call.
+    """
+
+    def __init__(self, inner: LLMProvider, cache_dir: Path, reuse: bool = False):
         self.inner = inner
         self.cache_dir = cache_dir
-        self.name = f"{inner.name}+record"
+        self.replay = ReplayLLM(cache_dir) if reuse else None
+        self.name = f"{inner.name}+record" + ("+reuse" if reuse else "")
         cache_dir.mkdir(parents=True, exist_ok=True)
 
     def complete_json(self, role, system, blocks, schema_name, schema, max_tokens=2000):
+        if self.replay:
+            try:
+                return self.replay.complete_json(role, system, blocks, schema_name, schema, max_tokens)
+            except LLMUnavailable:
+                pass
         res = self.inner.complete_json(role, system, blocks, schema_name, schema, max_tokens)
         key = cache_key(role, system, blocks, schema_name, schema)
         (self.cache_dir / f"{key}.json").write_text(json.dumps(
@@ -271,6 +281,11 @@ class RecordingLLM:
 
 
     def converse(self, role, system, messages, tools, max_tokens=2000):
+        if self.replay:
+            try:
+                return self.replay.converse(role, system, messages, tools, max_tokens)
+            except LLMUnavailable:
+                pass
         res = self.inner.converse(role, system, messages, tools, max_tokens)
         key = conversation_key(role, system, messages, tools)
         (self.cache_dir / f"{key}.json").write_text(json.dumps(
@@ -282,4 +297,4 @@ def build_llm(settings: Settings) -> LLMProvider:
     if settings.mode == "demo":
         return ReplayLLM(settings.llm_cache_dir)
     inner: LLMProvider = BedrockLLM(settings) if settings.mode == "aws" else AnthropicLLM(settings)
-    return RecordingLLM(inner, settings.llm_cache_dir) if settings.record_llm else inner
+    return RecordingLLM(inner, settings.llm_cache_dir, settings.reuse_recordings) if settings.record_llm else inner

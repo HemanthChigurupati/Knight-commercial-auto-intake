@@ -36,7 +36,8 @@ Rules:
 Cite only ids that appear in the brief. A statement you cannot support with an id must \
 be left out.
 - The decision is fixed by the rules engine; explain it, never change or second-guess it.
-- Use only facts in the brief. Do not invent amounts, dates, names or causes.
+- Use only facts in the brief. Do not invent amounts, dates, names or causes, and do not compute\
+  new numbers (day counts, totals): quote the ones the brief gives.
 - Findings with status 'resolved' were reading errors: do not raise them as concerns.
 """
 

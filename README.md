@@ -56,6 +56,9 @@ Every live (`aws` / `local`) run saves each Claude response to `fixtures/llm_cac
 OCR result to `fixtures/ocr_cache/` (keyed by source-file hash + page). Commit those folders
 and `demo` mode replays that run exactly, with no credentials and no cost.
 
+After changing one prompt, set `REUSE_RECORDINGS=true` for the live run: calls that already have a
+recording are replayed, and only the changed ones go to Bedrock.
+
 ## Run it
 
 ```bash
