@@ -35,6 +35,26 @@ from .store import Store
 
 log = logging.getLogger("pipeline")
 
+
+class _SkipHealthChecks(logging.Filter):
+    """The load balancer calls /api/health every few seconds; keep it out of the logs."""
+    def filter(self, record: logging.LogRecord) -> bool:
+        return "/api/health" not in record.getMessage()
+
+
+def _setup_logging() -> None:
+    # Pipeline steps go to stdout, which ECS ships to CloudWatch Logs.
+    if not log.handlers:
+        h = logging.StreamHandler()
+        h.setFormatter(logging.Formatter("%(asctime)s %(levelname)s %(message)s"))
+        log.addHandler(h)
+        log.setLevel(logging.INFO)
+        log.propagate = False
+    logging.getLogger("uvicorn.access").addFilter(_SkipHealthChecks())
+
+
+_setup_logging()
+
 SAMPLE_ID = "cobalt-mesa"
 SAMPLE = REPO_ROOT / "samples" / "cobalt-mesa" / "Sample Submission - Cobalt Mesa Transport.zip"
 FRONTEND = REPO_ROOT / "frontend" / "dist"

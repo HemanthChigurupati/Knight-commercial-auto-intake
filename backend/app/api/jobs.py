@@ -55,8 +55,12 @@ class Jobs:
             self.store.set_status(sid, state="running", step=n, step_label=label)
         try:
             self.store.set_status(sid, state="running", step=0, step_label="starting", started_at=now())
+            log.info("job %s started: %s", sid, ", ".join(p.name for p in inputs))
             sub = process(inputs, self.settings, sid, progress=progress)
             self.store.save(sub)
+            d = sub.decision
+            log.info("job %s done: %d documents, decision %s -> %s, driven by %s", sid, len(sub.documents),
+                     d.outcome if d else "-", d.route if d else "-", ", ".join(d.reasons) if d else "-")
             self.store.set_status(sid, state="done", step=9, step_label="complete", finished_at=now())
         except Exception as e:                        # report, never crash the worker
             log.exception("job %s failed", sid)
