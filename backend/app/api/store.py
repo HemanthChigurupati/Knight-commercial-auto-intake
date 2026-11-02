@@ -71,7 +71,10 @@ class Store:
 
     # ------------------------------------------------------------ listing
     def ids(self) -> list[str]:
-        return [p.name for p in self.root.iterdir() if p.is_dir() and _ID.match(p.name)]
+        """Submissions that came in through the app. Command-line runs of the pipeline write
+        only submission.json (no status.json) and are developer test runs, so they are skipped."""
+        return [p.name for p in self.root.iterdir()
+                if p.is_dir() and _ID.match(p.name) and (p / "status.json").exists()]
 
     def summary(self, sid: str) -> dict:
         """One row of the review queue. Cheap fields only."""

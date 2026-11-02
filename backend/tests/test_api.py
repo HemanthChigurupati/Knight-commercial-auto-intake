@@ -28,6 +28,7 @@ def stored(tmp_path_factory):
     store = Store(data)
     steps = []
     store.save(process([SAMPLE], s, "cobalt-mesa", progress=lambda n, label: steps.append(n)))
+    store.set_status("cobalt-mesa", state="done", name=SAMPLE.name)
     return store, steps
 
 
@@ -41,6 +42,13 @@ def test_queue_summary(stored):
     row = store.summary("cobalt-mesa")
     assert (row["applicant"], row["outcome"], row["route"]) == ("COBALT MESA TRANSPORT INC", "refer", "small_fleet")
     assert row["open_findings"] == 17 and row["documents"] == 22
+
+
+def test_command_line_runs_are_not_in_the_queue(stored):
+    store, _ = stored
+    (store.root / "cli0run").mkdir()
+    (store.root / "cli0run" / "submission.json").write_text("{}")
+    assert store.ids() == ["cobalt-mesa"]
 
 
 def test_ids_from_urls_cannot_escape_the_data_folder(stored):
@@ -99,6 +107,7 @@ def test_http_read_and_review(tmp_path, monkeypatch, stored):
     client, main = _client(tmp_path, monkeypatch)
     store, _ = stored
     main.store.save(store.load("cobalt-mesa"))
+    main.store.set_status("cobalt-mesa", state="done", name="sample")
 
     assert client.get("/api/config").json()["mode"] == "demo"
     assert [r["id"] for r in client.get("/api/submissions").json()] == ["cobalt-mesa"]
