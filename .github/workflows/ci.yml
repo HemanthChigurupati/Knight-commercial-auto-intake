@@ -1,0 +1,59 @@
+# Tests on every push; on main, build the container and push it to Amazon ECR.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  AWS_REGION: us-east-1
+  ECR_REPOSITORY: knight-intake
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: backend/requirements.txt
+      - run: sudo apt-get update && sudo apt-get install -y --no-install-recommends tesseract-ocr
+      - run: pip install -r backend/requirements.txt
+      - run: pytest -q
+        working-directory: backend
+        env:
+          APP_MODE: demo
+
+  image:
+    needs: test
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check AWS secrets are set
+        id: secrets
+        run: echo "ok=${{ secrets.AWS_ACCESS_KEY_ID != '' }}" >> "$GITHUB_OUTPUT"
+      - uses: aws-actions/configure-aws-credentials@v4
+        if: steps.secrets.outputs.ok == 'true'
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+      - id: ecr
+        if: steps.secrets.outputs.ok == 'true'
+        uses: aws-actions/amazon-ecr-login@v2
+      - name: Build and push
+        if: steps.secrets.outputs.ok == 'true'
+        run: |
+          IMAGE=${{ steps.ecr.outputs.registry }}/$ECR_REPOSITORY
+          docker build -t $IMAGE:${{ github.sha }} -t $IMAGE:latest .
+          docker push $IMAGE:${{ github.sha }}
+          docker push $IMAGE:latest
+          echo "Pushed $IMAGE:latest" >> "$GITHUB_STEP_SUMMARY"
