@@ -84,6 +84,25 @@ flowchart LR
   mean domicile or operations? does a baseline failure refer or decline?), the choice is a setting in
   `rules.yaml` with a default, shown on the page, not buried in code.
 
+## Open questions for Knight
+
+The guideline mockup leaves some points open. Each is decided by a named setting in
+`rules/rules.yaml` (or a documented rule), so changing the answer is a one-line edit:
+
+1. **"Non-listed states":** does it mean where the account is based, or anywhere it operates?
+   Assumed *domicile*; operating miles in other states are reported, not prohibited
+   (`non_listed_states_scope`).
+2. **Safe-driver baseline failures** (e.g. a scheduled driver with no CDL): refer or decline?
+   Assumed *refer*, so the driver can be excluded or the record corrected (`baseline_failure_outcome`).
+3. **Which date do the 60-day, 90-day and 3-year windows count from:** the application date or
+   the effective date? Assumed *application date* (`window_anchor`).
+4. **Which document sets the power-unit count for routing** when they disagree? The vehicle schedule
+   is used (4 units here; the quote says 5). Both route to Small Fleet, and the conflict is flagged.
+5. **Is a no-loss letter acceptable instead of a loss run**, for cargo in particular? Treated as weaker
+   evidence: accepted, but flagged ("no paid losses" says nothing about open claims).
+6. **How should "within 50 miles of the Mexico border" be established?** The documents can't show it,
+   so it is reported for the agent to confirm, not failed.
+
 ## AWS
 
 | Service | Use |
